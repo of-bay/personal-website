@@ -50,6 +50,7 @@
     }
     .slide.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
     .slide.exit-left { opacity: 0; transform: translateX(-30px); pointer-events: none; }
+    .slide.exit-right { opacity: 0; transform: translateX(30px); pointer-events: none; }
 
     /* ══ BOTTOMBAR ══════════════════════════════════ */
     .bottombar {
@@ -756,13 +757,19 @@ let cur = 0;
 
 function goTo(n, dir = 1) {
   if (n < 0 || n >= total) return;
-  slides[cur].classList.remove('active');
-  slides[cur].classList.add(dir > 0 ? 'exit-left' : '');
-  const prev = cur;
-  setTimeout(() => slides[prev].classList.remove('exit-left'), 400);
+  const leaving = cur;
+  slides[leaving].classList.remove('active');
+  if (dir > 0) {
+    slides[leaving].classList.add('exit-left');
+  } else {
+    slides[leaving].classList.add('exit-right');
+  }
+  setTimeout(() => {
+    slides[leaving].classList.remove('exit-left', 'exit-right');
+  }, 400);
   cur = n;
+  slides[cur].classList.remove('exit-left', 'exit-right');
   slides[cur].classList.add('active');
-  slides[cur].classList.remove('exit-left');
   updateUI();
 }
 function updateUI() {
