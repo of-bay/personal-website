@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ders 2: Hücre Fabrikası | BioLab Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #06060f;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --cyan: #00d4aa;
+      --purple: #7c3aed;
+      --gold: #f59e0b;
+      --red: #ef4444;
+      --white: #fff;
+      --muted: rgba(255,255,255,0.55);
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--white); font-family: 'Inter', sans-serif; }
+
+    /* ══ TOPBAR ══════════════════════════════════════ */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 52px; display: flex; align-items: center; padding: 0 1.5rem; gap: 1rem;
+      background: rgba(6,6,15,0.92); border-bottom: 1px solid var(--border); backdrop-filter: blur(16px);
+    }
+    .topbar-logo { font-family: var(--mono); font-size: 0.78rem; color: var(--gold); font-weight: 600; }
+    .topbar-title { flex: 1; font-size: 0.82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .topbar-counter { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+    .topbar-home { font-size: 0.78rem; color: var(--muted); text-decoration: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.6rem; transition: all 0.2s; }
+    .topbar-home:hover { color: var(--white); border-color: rgba(255,255,255,0.2); }
+
+    .slide-dots { display: flex; gap: 4px; align-items: center; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); transition: all 0.3s; cursor: pointer; }
+    .dot.active { background: var(--gold); width: 16px; border-radius: 3px; }
+    .dot.done { background: rgba(245,158,11,0.3); }
+
+    /* ══ SLIDES ══════════════════════════════════════ */
+    .slides-wrap { position: fixed; inset: 52px 0 56px 0; overflow: hidden; }
+    .slide {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      padding: 2rem 3rem 1.5rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      transform: translateX(30px); overflow-y: auto;
+    }
+    .slide.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
+    .slide.exit-left { opacity: 0; transform: translateX(-30px); pointer-events: none; }
+
+    /* ══ BOTTOMBAR ══════════════════════════════════ */
+    .bottombar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      height: 56px; display: flex; align-items: center; padding: 0 1.5rem; gap: 1rem;
+      background: rgba(6,6,15,0.92); border-top: 1px solid var(--border); backdrop-filter: blur(16px);
+    }
+    .nav-btn {
+      height: 36px; padding: 0 1.25rem; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--card);
+      color: var(--white); font-family: var(--mono); font-size: 0.78rem;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .nav-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+    .nav-btn:disabled { opacity: 0.3; cursor: default; }
+    .nav-btn.next-btn { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: var(--gold); margin-left: auto; }
+    .nav-btn.next-btn:hover { background: rgba(245,158,11,0.2); }
+    .progress-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.4s ease; }
+    .key-hint { font-family: var(--mono); font-size: 0.68rem; color: rgba(255,255,255,0.2); }
+
+    /* ══ SLIDE HELPERS ══════════════════════════════ */
+    .slide-label { font-family: var(--mono); font-size: 0.88rem; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; margin-bottom: 0.5rem; }
+    .slide h1 { font-size: clamp(2.4rem, 5vw, 4rem); font-weight: 800; line-height: 1.15; margin-bottom: 0.75rem; }
+    .slide h2 { font-size: clamp(1.9rem, 3.5vw, 2.8rem); font-weight: 800; line-height: 1.2; margin-bottom: 0.75rem; }
+    .slide h3 { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .slide p  { font-size: 1.15rem; color: var(--muted); line-height: 1.85; }
+    .accent-gold { color: var(--gold); }
+    .accent-cyan { color: var(--cyan); }
+    .accent-purple { color: #a78bfa; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; flex: 1; }
+    .three-col { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
+    .four-col { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+    .card-gold { border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.05); }
+    .card-cyan { border-color: rgba(0,212,170,0.2); background: rgba(0,212,170,0.05); }
+    .card-purple { border-color: rgba(124,58,237,0.2); background: rgba(124,58,237,0.05); }
+    .card-red { border-color: rgba(239,68,68,0.2); background: rgba(239,68,68,0.05); }
+
+    .fact-box {
+      background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 12px; padding: 1rem 1.25rem;
+      font-size: 1.05rem; color: rgba(255,255,255,0.8);
+      display: flex; gap: 0.75rem; align-items: flex-start;
+    }
+    .fact-box.cyan { background: rgba(0,212,170,0.06); border-color: rgba(0,212,170,0.2); }
+    .fact-box.purple { background: rgba(124,58,237,0.06); border-color: rgba(124,58,237,0.2); }
+    .fact-icon { font-size: 1.5rem; flex-shrink: 0; }
+
+    .tag { display: inline-block; padding: 0.25rem 0.7rem; border-radius: 6px; font-family: var(--mono); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.05em; }
+    .tag-gold { background: rgba(245,158,11,0.12); color: var(--gold); border: 1px solid rgba(245,158,11,0.25); }
+    .tag-cyan { background: rgba(0,212,170,0.12); color: var(--cyan); border: 1px solid rgba(0,212,170,0.25); }
+    .tag-purple { background: rgba(124,58,237,0.12); color: #a78bfa; border: 1px solid rgba(124,58,237,0.25); }
+    .tag-red { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+
+    img.full { width: 100%; border-radius: 14px; display: block; border: 1px solid var(--border); }
+    img.half { width: 100%; border-radius: 12px; display: block; object-fit: contain; max-height: 360px; }
+    .stat-big { font-size: 2.8rem; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 1rem; color: var(--muted); margin-top: 0.3rem; }
+
+    video.lesson-vid {
+      width: 100%; border-radius: 14px; display: block;
+      border: 1px solid var(--border); background: #000;
+      max-height: 420px; object-fit: contain;
+    }
+
+    /* ══ Fabrika karşılaştırma ══════════════════════ */
+    .compare-tbl { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 0; }
+    .cmp-col { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .cmp-col.right { border-color: rgba(245,158,11,0.2); background: rgba(245,158,11,0.05); }
+    .cmp-hdr { padding: 0.7rem 1rem; font-family: var(--mono); font-size: 0.88rem; letter-spacing: 0.1em; color: var(--muted); border-bottom: 1px solid var(--border); }
+    .cmp-row { padding: 0.75rem 1rem; font-size: 1rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .cmp-row:last-child { border-bottom: none; }
+    .cmp-row.right { color: var(--gold); }
+    .cmp-sep { display: flex; flex-direction: column; align-items: center; justify-content: space-around; }
+    .cmp-eq { font-family: var(--mono); color: rgba(255,255,255,0.15); font-size: 1.1rem; }
+
+    /* ══ Glikoliz ═══════════════════════════════════ */
+    .glyco-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; flex:1; }
+    .glyco-steps { display: flex; flex-direction: column; gap: 0; }
+    .glyco-step { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.85rem 1rem; border-left: 2px solid var(--border); cursor: pointer; transition: all 0.2s; position: relative; }
+    .glyco-step:hover, .glyco-step.active { background: rgba(245,158,11,0.06); border-left-color: var(--gold); }
+    .glyco-step.rate-limiting { border-left-color: var(--red); }
+    .glyco-step.rate-limiting::after { content: '⚡ Hız Sınırlayıcı'; position: absolute; right: 0.75rem; top: 0.75rem; font-family: var(--mono); font-size: 0.75rem; color: var(--red); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; padding: 0.2rem 0.45rem; }
+    .glyco-num { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 0.88rem; font-weight: 700; background: var(--card); border: 1px solid var(--border); color: var(--gold); transition: all 0.2s; }
+    .glyco-step.active .glyco-num { background: var(--gold); color: #000; border-color: var(--gold); }
+    .glyco-step-text h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.1rem; }
+    .glyco-step-text p { font-size: 0.9rem; color: var(--muted); margin: 0; }
+    .glyco-panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+
+    .atp-bar-label { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.9rem; margin-bottom: 0.4rem; }
+    .atp-bar-track { height: 12px; background: rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden; }
+    .atp-bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--gold), #fbbf24); transition: width 0.5s ease; }
+
+    /* ══ Metabolik Ağ canvas ════════════════════════ */
+    #network-canvas { border-radius: 12px; cursor: pointer; display: block; }
+    .net-controls { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .net-btn { padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--muted); font-family: var(--mono); font-size: 0.88rem; cursor: pointer; transition: all 0.2s; }
+    .net-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .net-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+    .fba-layout { display: grid; grid-template-columns: 1.1fr 1fr; gap: 2rem; align-items: start; flex:1; }
+    .fba-panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+    .fba-sg label { font-size: 1rem; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 0.35rem; }
+    .fba-sg label span { color: var(--gold); font-weight: 700; }
+    .fba-sg + .fba-sg { margin-top: 1rem; }
+    .fba-flux-bar { display: flex; align-items: center; gap: 0.75rem; margin: 0.4rem 0; }
+    .fba-flux-label { font-family: var(--mono); font-size: 0.88rem; width: 110px; flex-shrink: 0; color: var(--muted); }
+    .fba-flux-track { flex: 1; height: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; overflow: hidden; }
+    .fba-flux-fill { height: 100%; border-radius: 5px; transition: width 0.5s ease; }
+
+    /* ══ Sentetik Biyoloji ══════════════════════════ */
+    .synbio-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; flex:1; }
+    .gene-toggle { display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.9rem; border-radius: 10px; border: 1px solid var(--border); background: var(--card); transition: all 0.25s; margin-bottom: 0.5rem; }
+    .synbio-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; flex:1; }
+    .gene-toggle { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 1.25rem; border-radius: 12px; border: 1px solid var(--border); background: var(--card); transition: all 0.25s; margin-bottom: 0.75rem; }
+    .gene-toggle.overexpress { background: rgba(0,212,170,0.08); border-color: rgba(0,212,170,0.25); }
+    .gene-toggle.silence { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.25); }
+    .gene-name { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; }
+    .gene-role { font-size: 0.8rem; color: var(--muted); }
+    .gene-btns { display: flex; gap: 0.5rem; }
+    .t-over { padding: 0.35rem 0.7rem; border-radius: 6px; border: 1px solid rgba(0,212,170,0.4); background: transparent; color: var(--cyan); font-size: 0.75rem; cursor: pointer; transition: all 0.18s; }
+    .t-over.active { background: var(--cyan); color: #000; }
+    .t-sil { padding: 0.35rem 0.7rem; border-radius: 6px; border: 1px solid rgba(239,68,68,0.4); background: transparent; color: var(--red); font-size: 0.75rem; cursor: pointer; transition: all 0.18s; }
+    .t-sil.active { background: var(--red); color: #fff; }
+    .prod-bar-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .prod-bar-track { height: 14px; background: rgba(255,255,255,0.05); border-radius: 7px; overflow: hidden; margin-bottom: 1rem; }
+    .prod-bar-fill { height: 100%; border-radius: 7px; transition: width 0.6s ease; }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+    .slide-hero { justify-content: center; align-items: center; text-align: center; }
+
+    @media (max-width: 768px) {
+      .slide { padding: 1.25rem 1rem 1rem; }
+      .two-col, .three-col, .four-col, .glyco-layout, .fba-layout, .synbio-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- GLOSSARY POPUP -->
+<div id="glossary-popup">
+  <div class="gp-close" id="gp-close">×</div>
+  <div class="gp-term" id="gp-term"></div>
+  <div class="gp-def" id="gp-def"></div>
+</div>
+
+<!-- ══ TOPBAR ════════════════════════════════════════════ -->
+<div class="topbar">
+  <span class="topbar-logo">BioLab</span>
+  <span class="topbar-title" id="slide-title-bar">Hücre Fabrikası</span>
+  <div class="slide-dots" id="dots"></div>
+  <span class="topbar-counter" id="counter">1 / 15</span>
+  <a href="index.html" class="topbar-home">⌂ Menü</a>
+</div>
+
+<!-- ══ SLIDES ════════════════════════════════════════════ -->
+<div class="slides-wrap" id="slides-wrap">
+
+<!-- ─────────── SLAYT 1: BAŞLIK ─────────────────────────── -->
+<div class="slide active slide-hero" data-title="Hücre Fabrikası">
+  <div style="display:flex;flex-direction:column;align-items:center;max-width:700px;margin:auto;">
+    <span style="font-family:var(--mono); font-size:0.9rem; color:var(--muted); border:1px solid var(--border); border-radius:20px; padding:0.3rem 1rem; display:inline-block; margin-bottom:1.5rem;">TÜBİTAK 4004 · Fen Lisesi · 2025</span>
+    <h1 style="font-size:clamp(2.2rem,5vw,4rem); margin-bottom:0.5rem;">
+      Hücre <span class="accent-gold">Fabrikası</span>
+    </h1>
+    <p style="font-size:1.1rem; max-width:500px; text-align:center; color:var(--muted); margin-bottom:2rem;">
+      Metabolik Ağlar ve Modeller — Hücre nasıl çalışır, nasıl optimize edilir?
+    </p>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; width:100%; max-width:500px; margin-bottom:2rem;">
+      <div style="text-align:center; background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:1rem;">
+        <div style="font-size:1.5rem; font-weight:800; color:var(--gold);">60 dk</div>
+        <div style="font-size:0.92rem; color:var(--muted); margin-top:0.2rem;">Ders Süresi</div>
+      </div>
+      <div style="text-align:center; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1rem;">
+        <div style="font-size:1.5rem; font-weight:800; color:#a78bfa;">15</div>
+        <div style="font-size:0.92rem; color:var(--muted); margin-top:0.2rem;">Slayt</div>
+      </div>
+      <div style="text-align:center; background:rgba(0,212,170,0.05); border:1px solid rgba(0,212,170,0.2); border-radius:12px; padding:1rem;">
+        <div style="font-size:1.5rem; font-weight:800; color:var(--cyan);">+1</div>
+        <div style="font-size:0.92rem; color:var(--muted); margin-top:0.2rem;">Pratik (Escher)</div>
+      </div>
+    </div>
+    <p style="font-family:var(--mono); font-size:0.9rem; color:rgba(255,255,255,0.2);">Klavye: ← → &nbsp;|&nbsp; Boşluk: ileri &nbsp;|&nbsp; Öğrenciler: aynı dosyayı açın</p>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 2: NEDEN? ─────────────────────────── -->
+<div class="slide" data-title="Neden Bu Dersi Alıyoruz?">
+  <div class="slide-label">BAŞLANGIÇ NOKTASI</div>
+  <h2>Cevabını Bilmek İstediğimiz<br><span class="accent-gold">3 Büyük Soru</span></h2>
+  <div class="three-col" style="margin-top:1.5rem; flex:1;">
+    <div class="card card-gold" style="padding:1.5rem;">
+      <div style="font-size:2rem; margin-bottom:0.75rem;">⚡</div>
+      <h3 style="color:var(--gold); margin-bottom:0.6rem;">Neden egzersiz yaparken nefes kesiliyor?</h3>
+      <p>Kaslarınız çok hızlı enerji üretmek zorunda. Bu enerji üretim sürecini anlamak için hücrenin metabolizmasını bilmemiz gerekiyor.</p>
+    </div>
+    <div class="card card-cyan" style="padding:1.5rem;">
+      <div style="font-size:2rem; margin-bottom:0.75rem;">🍺</div>
+      <h3 style="color:var(--cyan); margin-bottom:0.6rem;">Ekmek, bira, yoğurt nasıl üretiliyor?</h3>
+      <p>Hepsi mayalar ve bakterilerin <span class="gl" data-term="metabolizma">metabolizması</span> sayesinde. İnsanoğlu bunu <strong style="color:var(--white)">10.000 yıldır</strong> kullanıyor — ama nasıl çalıştığını anlamadan!</p>
+    </div>
+    <div class="card card-purple" style="padding:1.5rem;">
+      <div style="font-size:2rem; margin-bottom:0.75rem;">💉</div>
+      <h3 style="color:#a78bfa; margin-bottom:0.6rem;">İnsülin neden hayvandan değil, bakteriden üretiliyor?</h3>
+      <p>Bilim insanları bakterinin <span class="gl" data-term="metabolizma">metabolizmasını</span> <strong style="color:var(--white)">yeniden programladı.</strong> Bu pratik ders ve <span class="gl" data-term="fba">FBA</span> sayesinde biz de deneyebileceğiz!</p>
+    </div>
+  </div>
+  <div class="fact-box" style="margin-top:1.25rem;">
+    <span class="fact-icon">🎯</span>
+    <p>Bugünkü ders: <span class="gl" data-term="metabolizma">Metabolizmanın</span> nasıl çalıştığını, nasıl modellendiğini ve nasıl <strong style="color:var(--white)">yeniden programlanabileceğini</strong> anlayacağız.</p>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 3: METABOLİZMA NEDİR? ─────────────── -->
+<div class="slide" data-title="Metabolizma Nedir?">
+  <div class="slide-label">TEMEL KAVRAM</div>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <h2>Metabolizma:<br><span class="accent-gold">Hücrenin Tüm Kimyası</span></h2>
+      <p style="margin:0.75rem 0 1.25rem;"><span class="gl" data-term="metabolizma">Metabolizma</span>, bir hücrede ya da organizmada gerçekleşen <strong style="color:var(--white)">tüm kimyasal reaksiyonların</strong> toplamıdır. Yemek yediğinizde aldığınız enerjiyi <span class="gl" data-term="atp">ATP</span>'ye dönüştürüp bütün vücudunuza dağıtan sistemdir.</p>
+      <div style="display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1.25rem;">
+        <div class="card" style="padding:0.9rem; display:flex; gap:0.75rem; align-items:center;">
+          <span style="font-size:1.3rem;">🌿</span>
+          <div><strong style="font-size:0.9rem;">Girdi:</strong> <span style="font-size:1.0rem; color:var(--muted);"><span class="gl" data-term="glikoz">Glikoz</span>, amino asitler, yağ asitleri, oksijen</span></div>
+        </div>
+        <div class="card" style="padding:0.9rem; display:flex; gap:0.75rem; align-items:center;">
+          <span style="font-size:1.3rem;">⚙️</span>
+          <div><strong style="font-size:0.9rem;">İşlem:</strong> <span style="font-size:1.0rem; color:var(--muted);"><span class="gl" data-term="enzim">Enzimler</span> aracılığıyla kimyasal dönüşümler</span></div>
+        </div>
+        <div class="card" style="padding:0.9rem; display:flex; gap:0.75rem; align-items:center;">
+          <span style="font-size:1.3rem;">⚡</span>
+          <div><strong style="font-size:0.9rem;">Çıktı:</strong> <span style="font-size:1.0rem; color:var(--muted);"><span class="gl" data-term="atp">ATP</span> (enerji), biyomoleküller, CO₂, H₂O</span></div>
+        </div>
+      </div>
+      <div class="fact-box">
+        <span class="fact-icon">🤯</span>
+        <p><strong style="color:var(--gold)">Şaşırtıcı:</strong> Bir insan hücresi saniyede yaklaşık <strong style="color:var(--white)">10 milyon kimyasal reaksiyon</strong> gerçekleştirir. Vücuttaki 37 trilyon hücreyle çarpın — sonsuz bir kimyasal fabrika!</p>
+      </div>
+    </div>
+    <div>
+      <div class="card card-gold" style="padding:1.5rem; margin-bottom:1rem;">
+        <h3 style="color:var(--gold); margin-bottom:0.75rem;">⚡ <span class="gl" data-term="atp">ATP</span> Nedir?</h3>
+        <p style="font-size:1.05rem; line-height:1.75;"><span class="gl" data-term="atp">ATP</span> (Adenozin Trifosfat) hücrenin <strong style="color:var(--white)">evrensel para birimi</strong>dir. Kas kasılması, sinir iletimi, protein üretimi — hepsi <span class="gl" data-term="atp">ATP</span> harcar.<br><br>
+        1 <span class="gl" data-term="glikoz">glikoz</span> molekülü → <strong style="color:var(--gold)">36–38 <span class="gl" data-term="atp">ATP</span></strong> üretir.<br>
+        Dinlenme halinde bile saniyede <strong style="color:var(--white)">40 kg <span class="gl" data-term="atp">ATP</span></strong> sentezlersiniz!</p>
+      </div>
+      <div class="fact-box cyan">
+        <span class="fact-icon">🍕</span>
+        <p><strong style="color:var(--cyan)">Analoji:</strong> <span class="gl" data-term="metabolizma">Metabolizma</span> bir <em>şehrin elektrik şebekesi</em> gibidir. Farklı enerji kaynakları (<span class="gl" data-term="glikoz">glikoz</span>, yağ, protein) güç santrallerinde (<span class="gl" data-term="mitokondri">mitokondri</span>) işlenerek evlere (hücre organellerine) <span class="gl" data-term="atp">ATP</span> olarak dağıtılır.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 4: ANABOLİZMA vs KATABOLİZMA ───────── -->
+<div class="slide" data-title="Anabolizma ve Katabolizma">
+  <div class="slide-label">METABOLİZMA TÜRLERİ</div>
+  <h2 style="margin-bottom:1.25rem;">İki Yön: <span class="accent-gold">Yapım</span> ve <span class="accent-cyan">Yıkım</span></h2>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <div class="card" style="padding:1.5rem; border-color:rgba(245,158,11,0.2); background:rgba(245,158,11,0.05); margin-bottom:1rem;">
+        <div style="font-size:2rem; margin-bottom:0.5rem;">🏗️</div>
+        <h3 style="color:var(--gold); margin-bottom:0.5rem;"><span class="gl" data-term="anabolizma">Anabolizma</span> — YAPIM</h3>
+        <p style="font-size:1.05rem; line-height:1.75;">Küçük moleküllerden büyük moleküller sentezlenir.<br>
+        <strong style="color:var(--white)">Enerji gerektirir (<span class="gl" data-term="atp">ATP</span> harcar).</strong></p>
+        <div style="margin-top:0.75rem; display:flex; flex-direction:column; gap:0.4rem; font-size:1.0rem;">
+          <span>🧬 Amino asitler → Protein (kas yapımı)</span>
+          <span>🍬 <span class="gl" data-term="glikoz">Glikoz</span> → Glikojen (depo şekeri)</span>
+          <span>🧪 Nükleotidler → DNA (hücre bölünmesi)</span>
+        </div>
+      </div>
+      <div class="fact-box">
+        <span class="fact-icon">💡</span>
+        <p>Egzersiz sonrası kaslarınızın "büyümesi" <span class="gl" data-term="anabolizma">anabolizma</span>. Vücut geliştirme sporları anabolik hormonları (testosteron, büyüme hormonu) artırarak bunu hızlandırır.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="padding:1.5rem; border-color:rgba(0,212,170,0.2); background:rgba(0,212,170,0.05); margin-bottom:1rem;">
+        <div style="font-size:2rem; margin-bottom:0.5rem;">💥</div>
+        <h3 style="color:var(--cyan); margin-bottom:0.5rem;"><span class="gl" data-term="katabolizma">Katabolizma</span> — YIKIM</h3>
+        <p style="font-size:1.05rem; line-height:1.75;">Büyük moleküller küçük parçalara ayrılır.<br>
+        <strong style="color:var(--white)">Enerji açığa çıkar (<span class="gl" data-term="atp">ATP</span> üretir).</strong></p>
+        <div style="margin-top:0.75rem; display:flex; flex-direction:column; gap:0.4rem; font-size:1.0rem;">
+          <span>🍬 <span class="gl" data-term="glikoz">Glikoz</span> → CO₂ + H₂O (solunum)</span>
+          <span>🥩 Protein → Amino asitler (açlıkta)</span>
+          <span>🧈 Yağ → Yağ asitleri (β-oksidasyon)</span>
+        </div>
+      </div>
+      <div class="fact-box cyan">
+        <span class="fact-icon">🏃</span>
+        <p>Koşarken kaslarınız <span class="gl" data-term="glikoz">glikozu</span> <span class="gl" data-term="katabolizma">katabolize</span> ederek <span class="gl" data-term="atp">ATP</span> üretir. Uzun koşularda yağlar da devreye girer — bu yüzden maraton koşucuları çok zayıf olur!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 5: HÜCRE FABRİKASI ────────────────── -->
+<div class="slide" data-title="Hücre Fabrikası Metaforu">
+  <div class="slide-label">TEMEL METAFOR</div>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <h2>Hücre = <span class="accent-gold">Fabrika</span></h2>
+      <p style="margin:0.5rem 0 1.25rem;">4 milyar yıllık evrimle optimize edilmiş bir üretim tesisi. Hangi fabrika bileşeni hangi hücre yapısına karşılık gelir?</p>
+      <div class="compare-tbl">
+        <div class="cmp-col">
+          <div class="cmp-hdr">🏭 FABRİKA</div>
+          <div id="cmp-left"></div>
+        </div>
+        <div class="cmp-sep" id="cmp-eq"></div>
+        <div class="cmp-col right">
+          <div class="cmp-hdr" style="color:var(--gold);">⚗️ HÜCRE</div>
+          <div id="cmp-right"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card card-gold" style="padding:1.5rem; margin-bottom:1rem;">
+        <h3 style="color:var(--gold); margin-bottom:0.75rem;">🏆 Mühendislik Perspektifi</h3>
+        <p style="font-size:1.05rem; line-height:1.75;">Hücre, insan yapımı hiçbir fabrikayla kıyaslanamaz:<br><br>
+        <strong style="color:var(--white)">📦 Boyut:</strong> 10 mikrometre (0.01 mm)<br>
+        <strong style="color:var(--white)">⚡ Verimlilik:</strong> %40 (termal makineler %20-30)<br>
+        <strong style="color:var(--white)">🔧 Kendi kendini onarır</strong><br>
+        <strong style="color:var(--white)">📋 Kendi kendini kopyalar (bölünme)</strong><br>
+        <strong style="color:var(--white)">♻️ Tamamen sürdürülebilir</strong></p>
+      </div>
+      <div class="fact-box">
+        <span class="fact-icon">🤖</span>
+        <p><strong style="color:var(--gold)">Sentetik Biyoloji:</strong> Bilim insanları bu "fabrikayı" yeniden programlıyor. E. coli bakterisi insülin, ilaç, biyoyakıt üretmek için mühendislik ile tasarlanıyor.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 6: METABOLİK YOLAK ───────────────── -->
+<div class="slide" data-title="Metabolik Yolak Nedir?">
+  <div class="slide-label">TEMEL KAVRAM</div>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <h2>Metabolik Yolak:<br><span class="accent-gold">Adım Adım Dönüşüm</span></h2>
+      <p style="margin:0.75rem 0 1.25rem;">Metabolik yolak, bir başlangıç molekülünün <strong style="color:var(--white)">enzimler aracılığıyla adım adım</strong> farklı moleküllere dönüştürüldüğü sıralı reaksiyonlar zinciridir.</p>
+      <div class="fact-box" style="margin-bottom:1rem;">
+        <span class="fact-icon">🏭</span>
+        <p><strong style="color:var(--gold)">Fabrika analojisi:</strong> Bir araç fabrikasında ham çelik → levha → baskı → boyama → montaj şeklinde sıralı bir üretim hattı vardır. Metabolik yolak da aynı mantıkla çalışır — her adım bir sonraki için "ürün" hazırlar.</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:0.5rem;">
+        <div class="card" style="padding:0.9rem;"><span style="color:var(--gold);">⚡</span> <strong><span class="gl" data-term="glikoliz">Glikoliz:</span></strong> <span style="font-size:1.0rem; color:var(--muted);"><span class="gl" data-term="glikoz">Glikoz</span> → <span class="gl" data-term="pirüvat">Pirüvat</span> (10 adım, sitoplazmada)</span></div>
+        <div class="card" style="padding:0.9rem;"><span style="color:var(--cyan);">🔄</span> <strong><span class="gl" data-term="krebs">Krebs Döngüsü:</span></strong> <span style="font-size:1.0rem; color:var(--muted);">Pirüvat → CO₂ + enerji taşıyıcıları</span></div>
+        <div class="card" style="padding:0.9rem;"><span style="color:#a78bfa;">🔋</span> <strong>Elektron Taşıma Zinciri:</strong> <span style="font-size:1.0rem; color:var(--muted);"><span class="gl" data-term="nadh">NADH</span> → 34 <span class="gl" data-term="atp">ATP</span> (<span class="gl" data-term="mitokondri">mitokondride</span>)</span></div>
+        <div class="card" style="padding:0.9rem;"><span style="color:var(--red);">🍅</span> <strong><span class="gl" data-term="likopen">Likopen</span> Yolağı:</strong> <span style="font-size:1.0rem; color:var(--muted);">Kırmızı pigment sentezi (Sentetik biyoloji)</span></div>
+      </div>
+    </div>
+    <div>
+      <!-- Görsel yolak şeması - HTML/CSS ile -->
+      <div class="card" style="padding:1.5rem;">
+        <h3 style="color:var(--gold); margin-bottom:1rem; text-align:center;">Yolak Şeması</h3>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
+          <div style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:0.6rem 1.25rem; font-weight:700; color:var(--gold); font-family:var(--mono); font-size:1.05rem;">Glikoz (C₆)</div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:0.1rem; margin:0.2rem 0;">
+            <div style="width:2px; height:16px; background:var(--border);"></div>
+            <div style="font-family:var(--mono); font-size:0.82rem; color:var(--muted);">Hekzokinaz (ATP↓)</div>
+            <div style="width:2px; height:16px; background:var(--border);"></div>
+          </div>
+          <div style="background:rgba(0,212,170,0.1); border:1px solid rgba(0,212,170,0.2); border-radius:8px; padding:0.5rem 1.25rem; font-family:var(--mono); font-size:0.98rem; color:var(--cyan);">G6P</div>
+          <div style="width:2px; height:12px; background:var(--border); margin:0.2rem 0;"></div>
+          <div style="font-family:var(--mono); font-size:0.82rem; color:var(--muted);">...7 adım...</div>
+          <div style="width:2px; height:12px; background:var(--border); margin:0.2rem 0;"></div>
+          <div style="background:rgba(0,212,170,0.1); border:1px solid rgba(0,212,170,0.2); border-radius:8px; padding:0.5rem 1.25rem; font-family:var(--mono); font-size:0.98rem; color:var(--cyan);">PEP</div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:0.1rem; margin:0.2rem 0;">
+            <div style="width:2px; height:16px; background:var(--border);"></div>
+            <div style="font-family:var(--mono); font-size:0.82rem; color:var(--muted);">Pirüvat Kinaz (ATP↑)</div>
+            <div style="width:2px; height:16px; background:var(--border);"></div>
+          </div>
+          <div style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:0.6rem 1.25rem; font-weight:700; color:var(--gold); font-family:var(--mono); font-size:1.05rem;">Pirüvat (C₃)</div>
+          <div style="margin-top:0.75rem; display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
+            <span class="tag tag-gold">Net: +2 ATP</span>
+            <span class="tag tag-cyan">2× NADH</span>
+            <span class="tag" style="color:var(--muted); border-color:var(--border);">10 Adım</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 7: GLİKOLİZ ──────────────────────── -->
+<div class="slide" data-title="Glikoliz: Adım Adım">
+  <div class="slide-label">METABOLİK YOLAK</div>
+  <h2 style="margin-bottom:0.5rem;">Glikoliz: <span class="accent-gold">Enerjinin Gizemi</span></h2>
+  <p style="margin-bottom:1rem; font-size:1.05rem;">Her adıma tıkla → sağda ne olduğunu ve <span class="gl" data-term="atp">enerji bilançosunu</span> gör. <span class="gl" data-term="pfk-1">PFK-1</span>'in neden önemli olduğunu keşfet!</p>
+  <div class="glyco-layout">
+    <div class="glyco-steps" id="glyco-steps"></div>
+    <div class="glyco-panel">
+      <h4 id="glyco-title" style="color:var(--gold); margin-bottom:0.5rem;">Bir adım seç</h4>
+      <p id="glyco-desc" style="font-size:1.0rem; margin-bottom:0.75rem;"></p>
+      <div id="glyco-enzyme" style="margin-bottom:0.75rem;"></div>
+      <div class="atp-bar-label">
+        <span>NET ATP</span>
+        <span id="atp-count" style="color:var(--gold); font-weight:700;">—</span>
+      </div>
+      <div class="atp-bar-track"><div class="atp-bar-fill" id="atp-bar" style="width:0%"></div></div>
+      <div id="glyco-note" style="margin-top:0.75rem; font-size:0.98rem; color:var(--muted);"></div>
+      <div class="fact-box" style="margin-top:1rem;">
+        <span class="fact-icon">💡</span>
+        <p style="font-size:0.98rem;">Glikoliz <strong style="color:var(--white)">oksijen gerektirmez.</strong> Bu yüzden hem aeropta hem anaerobik ortamda çalışır. Kola içip ekmek yapan mayalar oksijen olmadan da glikozu parçalar!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 8: METABOLİK HARİTA GİRİŞ (GPS ANALOJİSİ) ─── -->
+<div class="slide" data-title="Metabolik Harita ve Modeller">
+  <div class="slide-label">KAVRAMSAL GEÇİŞ</div>
+  <h2 style="margin-bottom:1rem;">Eski Yol Haritası mı,<br><span class="accent-gold">GPS mi?</span></h2>
+  <div class="two-col" style="flex:1; align-items:center;">
+    <div>
+      <p style="margin-bottom:1.25rem;">Glikoliz gibi yolakları tek tek bilmek güzel — ama bir hücrede <strong style="color:var(--white)">1000'den fazla yolak</strong> eş zamanlı çalışır. Tümünü görmek için metabolik harita ve model gerekir.</p>
+      <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.25rem;">
+        <div class="card" style="padding:1rem; border-color:rgba(255,255,255,0.04);">
+          <div style="display:flex; gap:0.75rem; align-items:flex-start;">
+            <span style="font-size:1.5rem;">🗺️</span>
+            <div>
+              <div style="font-weight:700; margin-bottom:0.3rem; color:var(--muted);">Eski Yöntem: Yol Haritası</div>
+              <p style="font-size:0.98rem;">Tüm yolları gösterir ama trafiği göstermez. Hangi yolun ne kadar kullanıldığını söyleyemez. Statik, değişmez.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card card-gold" style="padding:1rem;">
+          <div style="display:flex; gap:0.75rem; align-items:flex-start;">
+            <span style="font-size:1.5rem;">📡</span>
+            <div>
+              <div style="font-weight:700; margin-bottom:0.3rem; color:var(--gold);">Yeni Yöntem: GPS (Metabolik Model)</div>
+              <p style="font-size:0.98rem;">Gerçek zamanlı trafik akışını hesaplar. "Bu gen silinirse ne olur?" sorusunu <strong style="color:var(--white)">bilgisayarda saniyeler içinde</strong> cevaplar.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fact-box">
+        <span class="fact-icon">🧭</span>
+        <p><strong style="color:var(--gold)">Kısaca:</strong> Metabolik harita = yolların listesi. Metabolik model = o yolların ne kadar kullanıldığını hesaplayan GPS yazılımı.</p>
+      </div>
+    </div>
+    <div>
+      <img src="Picture 1.png" alt="Eski yol haritası analojisi" class="full" style="max-height:420px; object-fit:contain;">
+      <p style="text-align:center; font-family:var(--mono); font-size:0.88rem; color:var(--muted); margin-top:0.5rem;">Metabolik yolaklar → GPS verisi</p>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 9: GPS VİDEOSU ────────────────────── -->
+<div class="slide" data-title="GPS Analojisi — Video">
+  <div class="slide-label">ANALOJİ / VİDEO</div>
+  <h2 style="margin-bottom:0.75rem;">GPS Analojisi:<br><span class="accent-gold">Metabolik Akışı Anlamak</span></h2>
+  <div class="two-col" style="flex:1; align-items:center; gap:2rem;">
+    <div>
+      <p style="margin-bottom:1rem;">GPS bir şehirdeki trafik akışını gerçek zamanlı takip eder ve en iyi güzergahı hesaplar. Metabolik model de aynı şeyi hücre içindeki molekül akışları için yapar.</p>
+      <div class="card card-gold" style="padding:1.25rem; margin-bottom:0.75rem;">
+        <h3 style="color:var(--gold); margin-bottom:0.75rem;">GPS ↔ Metabolik Model</h3>
+        <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:1.0rem;">
+          <div style="display:flex; gap:0.5rem;"><span>🏙️ Şehir</span><span style="color:var(--muted);">=</span><span style="color:var(--gold);">Hücre</span></div>
+          <div style="display:flex; gap:0.5rem;"><span>🛣️ Yollar</span><span style="color:var(--muted);">=</span><span style="color:var(--gold);">Metabolik Reaksiyonlar</span></div>
+          <div style="display:flex; gap:0.5rem;"><span>🚗 Arabalar</span><span style="color:var(--muted);">=</span><span style="color:var(--gold);">Metabolitler (Moleküller)</span></div>
+          <div style="display:flex; gap:0.5rem;"><span>🚦 Trafik</span><span style="color:var(--muted);">=</span><span style="color:var(--gold);">Reaksiyon Hızı (Flux)</span></div>
+          <div style="display:flex; gap:0.5rem;"><span>🗺️ Rota hesaplama</span><span style="color:var(--muted);">=</span><span style="color:var(--gold);">FBA Optimizasyonu</span></div>
+          <div style="display:flex; gap:0.5rem;"><span>🚧 Yol kapanması</span><span style="color:var(--muted);">=</span><span style="color:var(--gold);">Enzim Silinmesi (Knockout)</span></div>
+        </div>
+      </div>
+      <div class="fact-box">
+        <span class="fact-icon">💻</span>
+        <p>E. coli'nin metabolik modeli <strong style="color:var(--white)">2.000+ reaksiyon</strong> içeriyor. GPS'in tüm İstanbul trafiğini hesaplaması gibi, model de bu 2.000 reaksiyonun dengesini saniyede çözüyor.</p>
+      </div>
+    </div>
+    <div>
+      <video class="lesson-vid" controls preload="metadata">
+        <source src="exportvideo 2.MOV" type="video/mp4">
+        <source src="exportvideo 2.MOV" type="video/quicktime">
+        <p style="padding:1rem; text-align:center; color:var(--muted);">Tarayıcınız bu videoyu desteklemiyor. Safari ile açmayı deneyin.</p>
+      </video>
+      <p style="text-align:center; font-family:var(--mono); font-size:0.88rem; color:var(--muted); margin-top:0.5rem;">GPS ve metabolik model arasındaki bağlantı</p>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 10: METABOLİK HARİTA ─────────────── -->
+<div class="slide" data-title="Metabolik Harita">
+  <div class="slide-label">METABOLİK HARİTA</div>
+  <div class="two-col" style="flex:1; align-items:center;">
+    <div>
+      <h2>Metabolik Harita:<br><span class="accent-gold">Tüm Yollar Bir Arada</span></h2>
+      <p style="margin:0.75rem 0 1.25rem;">Bir organizmanın tüm bilinen metabolik yolakları tek bir harita üzerinde gösterildiğinde oluşan görsel. İlk bakışta karmaşık görünür — ama her düğüm ve çizgi anlamlı!</p>
+      <div style="display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1.25rem;">
+        <div class="card" style="padding:0.85rem;"><span style="color:var(--gold);">⭕</span> <strong>Düğümler (Yuvarlaklar):</strong> <span style="font-size:1.0rem; color:var(--muted);">Metabolitler — glikoz, ATP, NADH gibi kimyasal maddeler</span></div>
+        <div class="card" style="padding:0.85rem;"><span style="color:var(--cyan);">→</span> <strong>Oklar (Kenarlar):</strong> <span style="font-size:1.0rem; color:var(--muted);">Reaksiyonlar — bir metabolitten diğerine dönüşüm</span></div>
+        <div class="card" style="padding:0.85rem;"><span style="color:#a78bfa;">⚙️</span> <strong>Etiketler:</strong> <span style="font-size:1.0rem; color:var(--muted);">Enzim adları — her oku katalize eden protein</span></div>
+      </div>
+      <div class="fact-box">
+        <span class="fact-icon">🗺️</span>
+        <p>Bu haritada binlerce yolak var. Pratik dersimizde kullanacağımız <strong style="color:var(--white)">Escher</strong>, bu haritayı interaktif olarak görüntülemek ve FBA sonuçlarını üzerine çizmek için kullanılır.</p>
+      </div>
+    </div>
+    <div>
+      <img src="Picture 2.png" alt="Metabolik harita" class="full" style="max-height:450px; object-fit:contain;">
+      <p style="text-align:center; font-family:var(--mono); font-size:0.88rem; color:var(--muted); margin-top:0.5rem;">E. coli Metabolik Haritası (iJO1366 modeli)</p>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 11: HÜCRE VİDEOSU ─────────────────── -->
+<div class="slide" data-title="Metabolik Ağ — Hücre İçi Trafik">
+  <div class="slide-label">METABOLİK AĞ / VİDEO</div>
+  <h2 style="margin-bottom:0.75rem;">Hücre İçi Trafik:<br><span class="accent-gold">Sitozolde Neler Dönüyor?</span></h2>
+  <div class="two-col" style="flex:1; align-items:center; gap:2rem;">
+    <div>
+      <p style="margin-bottom:1rem;">Metabolik ağ sadece bir harita değil — canlı, dinamik bir sistemdir. Moleküller sürekli hareket eder, reaksiyonlar saniyeler içinde dengelen.</p>
+      <div class="card card-cyan" style="padding:1.25rem; margin-bottom:0.75rem;">
+        <h3 style="color:var(--cyan); margin-bottom:0.75rem;">🔬 Sitozol Nedir?</h3>
+        <p style="font-size:1.05rem; line-height:1.75;">Hücrenin iç sıvısı — jöle kıvamında, moleküllerle dolu. Glikoliz burada gerçekleşir. Bir <em>damla</em> sitozolde milyonlarca enzim molekülü aynı anda çalışır.</p>
+      </div>
+      <div class="fact-box cyan">
+        <span class="fact-icon">⚡</span>
+        <p>Bir E. coli hücresi dakikada kendi ağırlığının <strong style="color:var(--white)">2 katı kadar protein</strong> üretebilir. Bu üretimi mümkün kılan metabolik ağın verimi.</p>
+      </div>
+    </div>
+    <div>
+      <video class="lesson-vid" controls preload="metadata" loop>
+        <source src="Cytosol.mov" type="video/mp4">
+        <source src="Cytosol.mov" type="video/quicktime">
+        <p style="padding:1rem; text-align:center; color:var(--muted);">Tarayıcınız bu videoyu desteklemiyor. Safari ile açmayı deneyin.</p>
+      </video>
+      <p style="text-align:center; font-family:var(--mono); font-size:0.88rem; color:var(--muted); margin-top:0.5rem;">Sitozol içindeki moleküler aktivite simülasyonu</p>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 12: METABOLİK AĞ (İNTERAKTİF) ─────── -->
+<div class="slide" data-title="Metabolik Ağ — İnteraktif">
+  <div class="slide-label">İNTERAKTİF AĞ</div>
+  <h2 style="margin-bottom:0.5rem;">Ağı Keşfet: <span class="accent-gold">Sil, Vurgula, Gözlemle</span></h2>
+  <div style="display:grid; grid-template-columns:1.3fr 1fr; gap:1.5rem; flex:1; align-items:start;">
+    <div>
+      <div class="net-controls">
+        <button class="net-btn" id="btn-reset">↺ Sıfırla</button>
+        <button class="net-btn danger" id="btn-delete">✕ Seçiliyi Sil</button>
+        <button class="net-btn" id="btn-highlight-path">→ ATP Yolunu Vurgula</button>
+      </div>
+      <canvas id="network-canvas" width="520" height="380"></canvas>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+      <div class="card" id="network-info" style="padding:1rem; min-height:80px;">
+        <span style="color:rgba(255,255,255,0.3); font-family:var(--mono); font-size:0.98rem;">← Bir düğüme tıkla</span>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div style="font-family:var(--mono); font-size:0.86rem; color:var(--muted); margin-bottom:0.5rem;">AĞ İSTATİSTİKLERİ</div>
+        <div id="network-stats" style="font-family:var(--mono); font-size:0.95rem; display:flex; flex-direction:column; gap:0.3rem;"></div>
+      </div>
+      <div class="fact-box">
+        <span class="fact-icon">💡</span>
+        <p style="font-size:0.98rem;"><strong style="color:var(--gold)">Dene:</strong> PFK-1 düğümüne tıkla, sonra "Seçiliyi Sil"e bas. Ağın geri kalanı nasıl etkileniyor? GPS'te yol kapatmak gibi!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 13: FBA MODELİ ────────────────────── -->
+<div class="slide" data-title="FBA: Metabolik GPS">
+  <div class="slide-label">METABOLİK MODEL</div>
+  <h2 style="margin-bottom:0.5rem;">Flux Denge Analizi:<br><span class="accent-gold">Hücreyi Optimize Et</span></h2>
+  <p style="margin-bottom:1rem; font-size:1.05rem;"><span class="gl" data-term="fba">FBA</span>, kütle ve enerji korunumu kurallarını kullanarak hücrenin kaynaklarını nasıl dağıttığını hesaplar. <strong style="color:var(--white)">Slider'ı değiştir — ne olduğunu gör!</strong></p>
+  <div class="fba-layout">
+    <div>
+      <canvas id="fba-canvas" width="440" height="280" style="border-radius:12px; border:1px solid var(--border);"></canvas>
+      <div class="fact-box" style="margin-top:0.75rem;">
+        <span class="fact-icon">💡</span>
+        <p style="font-size:0.98rem;"><strong style="color:var(--gold)">Gerçek dünya:</strong> Bilim insanları FBA kullanarak E. coli'yi <strong style="color:var(--white)">insülin üretecek</strong> şekilde programladı. Bugün diyabet hastalarının insülini bu yolla üretiliyor!</p>
+      </div>
+    </div>
+    <div>
+      <div class="fba-panel" style="margin-bottom:0.75rem;">
+        <div style="font-family:var(--mono); font-size:0.86rem; color:var(--muted); margin-bottom:0.75rem;">KONTROL PANELİ</div>
+        <div class="fba-sg">
+          <label>Glikoz (Karbon Kaynağı) <span id="glc-val">5</span> mM</label>
+          <input type="range" min="1" max="10" value="5" id="fba-glc" style="width:100%; accent-color:var(--gold);">
+        </div>
+        <div class="fba-sg">
+          <label>Oksijen <span id="o2-val">5</span> mmol/gDW/h</label>
+          <input type="range" min="0" max="10" value="5" id="fba-o2" style="width:100%; accent-color:var(--gold);">
+        </div>
+        <div class="fba-sg">
+          <label>Büyüme Hedefi <span id="growth-val">50</span>%</label>
+          <input type="range" min="0" max="100" value="50" id="fba-growth" style="width:100%; accent-color:var(--gold);">
+        </div>
+      </div>
+      <div class="fba-panel">
+        <div style="font-family:var(--mono); font-size:0.86rem; color:var(--muted); margin-bottom:0.75rem;">SİMÜLASYON SONUÇLARI</div>
+        <div class="fba-flux-bar"><span class="fba-flux-label">ATP Üretimi</span><div class="fba-flux-track"><div class="fba-flux-fill" id="fba-atp" style="background:var(--gold);"></div></div><span id="fba-atp-val" style="font-family:var(--mono);font-size:0.9rem;width:35px;"></span></div>
+        <div class="fba-flux-bar"><span class="fba-flux-label">Büyüme</span><div class="fba-flux-track"><div class="fba-flux-fill" id="fba-gr" style="background:var(--cyan);"></div></div><span id="fba-gr-val" style="font-family:var(--mono);font-size:0.9rem;width:35px;"></span></div>
+        <div class="fba-flux-bar"><span class="fba-flux-label">Ürün</span><div class="fba-flux-track"><div class="fba-flux-fill" id="fba-prod" style="background:#a78bfa;"></div></div><span id="fba-prod-val" style="font-family:var(--mono);font-size:0.9rem;width:35px;"></span></div>
+        <div class="fba-flux-bar"><span class="fba-flux-label">Etanol</span><div class="fba-flux-track"><div class="fba-flux-fill" id="fba-etoh" style="background:var(--red);"></div></div><span id="fba-etoh-val" style="font-family:var(--mono);font-size:0.9rem;width:35px;"></span></div>
+        <div id="fba-status" style="margin-top:0.75rem; padding:0.65rem; border-radius:8px; font-size:0.98rem; border:1px solid var(--border);"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 14: SENTETİK BİYOLOJİ ─────────────── -->
+<div class="slide" data-title="Sentetik Biyoloji">
+  <div class="slide-label">UYGULAMA</div>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <h2>Hücreyi<br><span class="accent-gold">Yeniden Programla!</span></h2>
+      <p style="margin:0.75rem 0 1rem; font-size:1.05rem;"><span class="gl" data-term="likopen">Likopen</span> (domatesin kırmızı pigmenti), E. coli'de doğal olarak üretilmez. Ama <span class="gl" data-term="sentetik biyoloji">gen mühendisliği</span> ile üretmesini sağlayabiliriz! <strong style="color:var(--white)">Genleri Açık/Kapalı yap → Sonucu gözlemle.</strong></p>
+      <div id="gene-list"></div>
+      <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+        <button onclick="runSynbio()" style="padding:0.55rem 1.1rem; border-radius:8px; border:none; background:var(--gold); color:#000; font-weight:700; font-size:1.0rem; cursor:pointer;">▶ Simülasyonu Çalıştır</button>
+        <button onclick="resetSynbio()" style="padding:0.55rem 1.1rem; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--white); font-size:1.0rem; cursor:pointer;">↺ Sıfırla</button>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="padding:1.25rem; margin-bottom:0.75rem;">
+        <div style="font-family:var(--mono); font-size:0.86rem; color:var(--muted); margin-bottom:0.75rem;">ÜRETİM SONUÇLARI</div>
+        <div class="prod-bar-label"><span>🍅 Likopen</span><span id="lycopene-pct" style="color:var(--red); font-family:var(--mono);">0%</span></div>
+        <div class="prod-bar-track"><div class="prod-bar-fill" id="lycopene-bar" style="width:0%; background:linear-gradient(90deg,#e67e22,#c0392b);"></div></div>
+        <div class="prod-bar-label"><span>⚡ ATP</span><span id="atp-pct" style="color:var(--cyan); font-family:var(--mono);">100%</span></div>
+        <div class="prod-bar-track"><div class="prod-bar-fill" id="atp-bar-synbio" style="width:100%; background:linear-gradient(90deg,var(--cyan),#00ffe6);"></div></div>
+        <div class="prod-bar-label"><span>🌱 Büyüme</span><span id="growth-pct" style="color:#a78bfa; font-family:var(--mono);">100%</span></div>
+        <div class="prod-bar-track"><div class="prod-bar-fill" id="growth-bar" style="width:100%; background:linear-gradient(90deg,#a78bfa,#7c3aed);"></div></div>
+      </div>
+      <div id="synbio-feedback" style="padding:1rem; border-radius:10px; border:1px solid var(--border); background:var(--card); font-size:0.98rem; min-height:70px; color:var(--muted);">Genleri ayarla ve simülasyonu başlat...</div>
+      <div class="fact-box" style="margin-top:0.75rem;">
+        <span class="fact-icon">🔬</span>
+        <p style="font-size:0.98rem;"><strong style="color:var(--gold)">Gerçek araştırma:</strong> Keasling lab'ı bu yaklaşımla anti-sıtma ilacı <em>artemisinin</em>i E. coli'de üretmeyi başardı. Milyonlarca hayat kurtardı!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SLAYT 15: ÖZET & ESCHER ─────────────────── -->
+<div class="slide" data-title="Özet ve Pratik">
+  <div class="slide-label">KAPANIŞ</div>
+  <h2 style="text-align:center; margin-bottom:1.5rem;">Bugün Öğrendiklerimiz &<br><span class="accent-gold">Sıradaki Adım: Escher</span></h2>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; flex:1; align-items:start;">
+    <div>
+      <div class="card" style="padding:1.5rem; margin-bottom:1rem;">
+        <h3 style="color:var(--gold); margin-bottom:0.75rem;">✅ Bugün Öğrendiklerimiz</h3>
+        <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:1.05rem;">
+          <div style="display:flex; gap:0.6rem;"><span class="tag tag-gold">1</span><span>Metabolizma = hücrenin tüm kimyasal reaksiyonları</span></div>
+          <div style="display:flex; gap:0.6rem;"><span class="tag tag-gold">2</span><span>Anabolizma (yapım) + Katabolizma (yıkım)</span></div>
+          <div style="display:flex; gap:0.6rem;"><span class="tag tag-gold">3</span><span>Glikoliz = 10 adımda glikoz → 2 ATP + pirüvat</span></div>
+          <div style="display:flex; gap:0.6rem;"><span class="tag tag-gold">4</span><span>Metabolik harita = tüm yolakların görselleştirmesi</span></div>
+          <div style="display:flex; gap:0.6rem;"><span class="tag tag-gold">5</span><span>Metabolik model (GPS) = akışları hesaplayan yazılım</span></div>
+          <div style="display:flex; gap:0.6rem;"><span class="tag tag-gold">6</span><span>FBA = enerji dağılımını optimize eden matematiksel araç</span></div>
+          <div style="display:flex; gap:0.6rem;"><span class="tag tag-gold">7</span><span>Sentetik biyoloji = hücreyi yeniden programlamak</span></div>
+        </div>
+      </div>
+      <div class="fact-box">
+        <span class="fact-icon">🔗</span>
+        <p><strong style="color:var(--gold)">Ders 1 ile bağlantı:</strong> RNA-seq (Ders 1) ile hangi genlerin aktif olduğunu ölçeriz → Bu gen ifade verisini FBA modeline eklersek daha doğru metabolik tahminler yaparız. İki ders birbirini tamamlıyor!</p>
+      </div>
+    </div>
+    <div>
+      <div class="card card-gold" style="padding:1.5rem; margin-bottom:1rem;">
+        <div style="font-size:2rem; margin-bottom:0.75rem; text-align:center;">🗺️</div>
+        <h3 style="color:var(--gold); margin-bottom:0.75rem; text-align:center;">Pratik Ders: Escher</h3>
+        <p style="font-size:1.05rem; line-height:1.75; margin-bottom:1rem;">Escher, metabolik haritaları interaktif olarak görüntülemek ve FBA sonuçlarını çizmek için kullanılan bir web aracıdır.</p>
+        <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:1.0rem; margin-bottom:1rem;">
+          <span>🖱️ Haritada gezinme</span>
+          <span>🔍 Reaksiyon ve metabolit arama</span>
+          <span>📊 Flux değerlerini haritaya bindirme</span>
+          <span>💾 Sonuçları kaydetme ve paylaşma</span>
+        </div>
+        <a href="https://escher.github.io" target="_blank" style="display:block; text-align:center; padding:0.6rem; background:var(--gold); color:#000; border-radius:8px; text-decoration:none; font-weight:700; font-size:1.05rem;">Escher'i Aç →</a>
+      </div>
+      <div style="display:flex; gap:0.75rem;">
+        <a href="lesson1.html" style="flex:1; display:block; text-align:center; padding:0.6rem; background:var(--card); border:1px solid var(--border); border-radius:8px; text-decoration:none; color:var(--muted); font-size:1.0rem;">← Ders 1</a>
+        <a href="index.html" style="flex:1; display:block; text-align:center; padding:0.6rem; background:var(--card); border:1px solid var(--border); border-radius:8px; text-decoration:none; color:var(--muted); font-size:1.0rem;">⌂ Ana Menü</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /slides-wrap -->
+
+<!-- ══ BOTTOMBAR ══════════════════════════════════════════ -->
+<div class="bottombar">
+  <button class="nav-btn" id="prev-btn" disabled>← Önceki</button>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:6.67%"></div></div>
+  <span class="key-hint">← →</span>
+  <button class="nav-btn next-btn" id="next-btn">Sonraki →</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════ -->
+<script>
+/* ──────────────────────────────────────────
+   SLAYT MOTORU
+────────────────────────────────────────── */
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let cur = 0;
+
+function goTo(n, dir = 1) {
+  if (n < 0 || n >= total) return;
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add(dir > 0 ? 'exit-left' : '');
+  const prev = cur;
+  setTimeout(() => slides[prev].classList.remove('exit-left'), 400);
+  cur = n;
+  slides[cur].classList.add('active');
+  slides[cur].classList.remove('exit-left');
+  updateUI();
+}
+function updateUI() {
+  document.getElementById('counter').textContent = `${cur+1} / ${total}`;
+  document.getElementById('slide-title-bar').textContent = slides[cur].dataset.title || '';
+  document.getElementById('prev-btn').disabled = cur === 0;
+  document.getElementById('next-btn').textContent = cur === total-1 ? '✓ Tamamlandı' : 'Sonraki →';
+  document.getElementById('next-btn').disabled = cur === total-1;
+  document.getElementById('progress-fill').style.width = ((cur+1)/total*100)+'%';
+  document.querySelectorAll('.dot').forEach((d,i) => {
+    d.classList.remove('active','done');
+    if (i===cur) d.classList.add('active');
+    else if (i<cur) d.classList.add('done');
+  });
+}
+
+const dotsEl = document.getElementById('dots');
+for (let i=0;i<total;i++){
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' active':'');
+  d.addEventListener('click',()=>goTo(i,i>cur?1:-1));
+  dotsEl.appendChild(d);
+}
+document.getElementById('prev-btn').addEventListener('click',()=>goTo(cur-1,-1));
+document.getElementById('next-btn').addEventListener('click',()=>goTo(cur+1));
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();goTo(cur+1);}
+  if(e.key==='ArrowLeft'){e.preventDefault();goTo(cur-1,-1);}
+});
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)dx<0?goTo(cur+1):goTo(cur-1,-1);},{passive:true});
+
+/* ──────────────────────────────────────────
+   SLAYT 5: Fabrika Karşılaştırma
+────────────────────────────────────────── */
+const factoryRows = [
+  { f:'🏭 Ham Madde',    c:'🌿 Glikoz, Amino Asitler' },
+  { f:'⚙️ Makineler',   c:'🔬 Enzimler' },
+  { f:'🔩 Üretim Hattı',c:'🔗 Metabolik Yolak' },
+  { f:'📦 Ürün',        c:'⚡ ATP, Biyomoleküller' },
+  { f:'👷 Mühendis',    c:'🧬 DNA (Gen İfadesi)' },
+  { f:'📐 Fabrika Şeması',c:'💻 Metabolik Model' },
+  { f:'🔌 Enerji Kaynağı',c:'☀️ Güneş / Glikoz' },
+  { f:'🗑️ Atık',        c:'💨 CO₂ + H₂O' },
+];
+const cmpL=document.getElementById('cmp-left');
+const cmpR=document.getElementById('cmp-right');
+const cmpEq=document.getElementById('cmp-eq');
+factoryRows.forEach(row=>{
+  const l=document.createElement('div'); l.className='cmp-row'; l.textContent=row.f;
+  const r=document.createElement('div'); r.className='cmp-row right'; r.textContent=row.c;
+  const e=document.createElement('div'); e.className='cmp-eq'; e.textContent='=';
+  cmpL.appendChild(l); cmpR.appendChild(r); cmpEq.appendChild(e);
+});
+
+/* ──────────────────────────────────────────
+   SLAYT 7: Glikoliz
+────────────────────────────────────────── */
+const glycoSteps = [
+  { n:'Glikoz → G6P', enzyme:'Hekzokinaz', atp:-1, net:-1, desc:'Glikoz hücreye girer girmez fosforillanır. 1 ATP harcanır. Bu adım glikozu hücre içinde "hapseder" — kaçamaz!', note:'⚡ Geri dönüşü olmayan ilk adım.', rl:false },
+  { n:'G6P → F6P', enzyme:'Fosfoglikoz İzomeraz', atp:0, net:-1, desc:'Glukoz-6-fosfat, fruktoz-6-fosfata dönüşür. Bu izomerizasyon (şekil değiştirme) ATP gerektirmez.', note:'Geri dönüşümlü bir adım.', rl:false },
+  { n:'F6P → F1,6BP', enzyme:'PFK-1 (Fosfofruktokinaz)', atp:-1, net:-2, desc:'İkinci ATP harcanır. PFK-1, glikolizin "hız pedalı"dır. ATP yüksekken yavaşlar — geri bildirimle kendi kendini düzenler!', note:'⭐ Hız sınırlayıcı adım!', rl:true },
+  { n:'F1,6BP → 2× PGAL', enzyme:'Aldolaz', atp:0, net:-2, desc:'6 karbonlu molekül 2 adet 3 karbonlı parçaya bölünür. Bundan sonra her şey ×2 hesaplanır — 2 molekül devam eder!', note:'Bu noktadan itibaren 2 paralel yolak.', rl:false },
+  { n:'PGAL → 1,3BPG', enzyme:'G3PDH', atp:0, net:-2, desc:'NAD⁺ indirgenerek NADH oluşur. Fosfat eklenir. NADH daha sonra elektron taşıma zincirinde 2.5 ATP üretir.', note:'NADH: enerji "deposu" molekülü', rl:false },
+  { n:'1,3BPG → 3PG', enzyme:'Fosfogliserat Kinaz', atp:+2, net:0, desc:'Substrat düzeyinde fosforilasyon! 2 ATP sentezlenir. Harcanan 2 ATP geri kazanıldı — artık "baş başa"!', note:'✅ Harcanılan ATP geri alındı!', rl:false },
+  { n:'3PG → 2PG', enzyme:'Fosfogliserat Mutaz', atp:0, net:0, desc:'Fosfat grubu 3. karbondan 2. karbona taşınır. Bir sonraki yüksek enerjili adım için hazırlık.', note:'Düzenleme adımı.', rl:false },
+  { n:'2PG → PEP', enzyme:'Enolaz', atp:0, net:0, desc:'Su çıkar, fosfoenolpiruvat (PEP) oluşur. PEP son ATP üretimi için yüksek enerjili bir ara üründür.', note:'Su kaybı: dehidrasyon', rl:false },
+  { n:'PEP → Pirüvat', enzyme:'Pirüvat Kinaz', atp:+2, net:+2, desc:'Son adım! 2 ATP daha sentezlenir. Pirüvat oluşur. Oksijen varsa Krebs döngüsüne, yoksa fermentasyona gider.', note:'🏁 Glikoliz tamamlandı! Net: 2 ATP', rl:false },
+];
+
+const gc=document.getElementById('glyco-steps');
+glycoSteps.forEach((step,i)=>{
+  const el=document.createElement('div');
+  el.className='glyco-step'+(step.rl?' rate-limiting':'');
+  el.innerHTML=`<div class="glyco-num">${i+1}</div><div class="glyco-step-text"><h4>${step.n}</h4><p>${step.enzyme}</p></div>`;
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.glyco-step').forEach(s=>s.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('glyco-title').textContent=step.n;
+    document.getElementById('glyco-desc').textContent=step.desc;
+    document.getElementById('glyco-enzyme').innerHTML=`<span class="tag tag-gold">Enzim: ${step.enzyme}</span>`;
+    document.getElementById('atp-count').textContent=(step.net>=0?'+':'')+step.net+' ATP';
+    document.getElementById('atp-count').style.color=step.net>=0?'var(--gold)':'var(--red)';
+    document.getElementById('atp-bar').style.width=Math.max(0,((step.net+2)/4)*100)+'%';
+    document.getElementById('glyco-note').textContent=step.note;
+  });
+  gc.appendChild(el);
+});
+gc.querySelectorAll('.glyco-step')[0].click();
+
+/* ──────────────────────────────────────────
+   SLAYT 12: Metabolik Ağ (Canvas)
+────────────────────────────────────────── */
+const nc=document.getElementById('network-canvas');
+const nctx=nc.getContext('2d');
+const NW=nc.width, NH=nc.height;
+
+const metNodes=[
+  {id:'glc',  label:'Glikoz',  x:260,y:28,  color:'#f59e0b'},
+  {id:'g6p',  label:'G6P',     x:260,y:85,  color:'#00d4aa'},
+  {id:'f6p',  label:'F6P',     x:260,y:142, color:'#00d4aa'},
+  {id:'f16bp',label:'F1,6BP',  x:260,y:198, color:'#00d4aa'},
+  {id:'dhap', label:'DHAP',    x:155,y:255, color:'#7c3aed'},
+  {id:'gap',  label:'GAP',     x:365,y:255, color:'#7c3aed'},
+  {id:'bpg',  label:'1,3BPG', x:365,y:312, color:'#00d4aa'},
+  {id:'pep',  label:'PEP',    x:365,y:355, color:'#00d4aa'},
+  {id:'pyr',  label:'Pirüvat', x:365,y:412, color:'#f59e0b'},
+  {id:'atp',  label:'ATP',     x:110,y:340, color:'#fbbf24'},
+  {id:'nadh', label:'NADH',    x:460,y:290, color:'#06d6a0'},
+  {id:'lac',  label:'Laktat',  x:195,y:412, color:'#ef4444'},
+];
+const metEdges=[
+  {from:'glc',  to:'g6p',   label:'Hekzokinaz'},
+  {from:'g6p',  to:'f6p',   label:'İzomeraz'},
+  {from:'f6p',  to:'f16bp', label:'PFK-1', highlight:true},
+  {from:'f16bp',to:'dhap',  label:'Aldolaz'},
+  {from:'f16bp',to:'gap',   label:'Aldolaz'},
+  {from:'dhap', to:'gap',   label:'İzomeraz'},
+  {from:'gap',  to:'bpg',   label:'G3PDH'},
+  {from:'bpg',  to:'pep',   label:'Enolaz'},
+  {from:'pep',  to:'pyr',   label:'PK'},
+  {from:'gap',  to:'nadh',  label:'NAD⁺→NADH', dashed:true},
+  {from:'bpg',  to:'atp',   label:'Substrat P.', dashed:true},
+  {from:'pep',  to:'atp',   label:'Substrat P.', dashed:true},
+  {from:'pyr',  to:'lac',   label:'Fermentasyon', dashed:true},
+];
+let deletedEdges=new Set(), highlightPath=false, selectedNode=null;
+
+function drawNetwork(){
+  nctx.clearRect(0,0,NW,NH);
+  nctx.fillStyle='#0a0a18'; nctx.fillRect(0,0,NW,NH);
+  const pathNodes=new Set(['glc','g6p','f6p','f16bp','gap','bpg','pep','pyr','atp']);
+  metEdges.forEach((e,i)=>{
+    if(deletedEdges.has(i)) return;
+    const from=metNodes.find(n=>n.id===e.from), to=metNodes.find(n=>n.id===e.to);
+    if(!from||!to) return;
+    const isPath=highlightPath&&pathNodes.has(e.from)&&pathNodes.has(e.to);
+    nctx.beginPath(); nctx.moveTo(from.x,from.y); nctx.lineTo(to.x,to.y);
+    nctx.strokeStyle=isPath?'#f59e0b':e.highlight?'#ef4444':'rgba(255,255,255,0.12)';
+    nctx.lineWidth=isPath?2.5:e.highlight?2:1;
+    if(e.dashed) nctx.setLineDash([4,4]); else nctx.setLineDash([]);
+    nctx.stroke(); nctx.setLineDash([]);
+    if(isPath){
+      const mx=(from.x+to.x)/2, my=(from.y+to.y)/2;
+      nctx.font='7px JetBrains Mono'; nctx.fillStyle='#f59e0b'; nctx.textAlign='center';
+      nctx.fillText(e.label,mx+8,my-4);
+    }
+  });
+  metNodes.forEach(node=>{
+    const sel=selectedNode===node.id;
+    const r=node.id==='glc'||node.id==='pyr'||node.id==='atp'?15:11;
+    nctx.beginPath(); nctx.arc(node.x,node.y,r,0,Math.PI*2);
+    nctx.fillStyle=node.color+(sel?'ff':'33'); nctx.fill();
+    nctx.strokeStyle=sel?'#fff':node.color; nctx.lineWidth=sel?2.5:1.5; nctx.stroke();
+    nctx.font=`${r<13?7:8}px JetBrains Mono`; nctx.fillStyle='#fff'; nctx.textAlign='center';
+    nctx.fillText(node.label,node.x,node.y+r+10);
+  });
+  const ae=metEdges.length-deletedEdges.size;
+  document.getElementById('network-stats').innerHTML=`
+    <div style="color:var(--muted)">Düğüm: <strong style="color:var(--gold)">${metNodes.length}</strong></div>
+    <div style="color:var(--muted)">Aktif Reaksiyon: <strong style="color:var(--gold)">${ae}</strong> / ${metEdges.length}</div>
+    <div style="color:var(--muted)">Silinen: <strong style="color:var(--red)">${deletedEdges.size}</strong></div>`;
+}
+drawNetwork();
+
+nc.addEventListener('click',e=>{
+  const rect=nc.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(NW/rect.width);
+  const my=(e.clientY-rect.top)*(NH/rect.height);
+  let closest=null, minD=22;
+  metNodes.forEach(n=>{const d=Math.hypot(n.x-mx,n.y-my); if(d<minD){minD=d;closest=n;}});
+  selectedNode=closest?closest.id:null;
+  drawNetwork();
+  if(closest){
+    const conn=metEdges.filter(e=>e.from===closest.id||e.to===closest.id);
+    document.getElementById('network-info').innerHTML=`
+      <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
+        <div style="width:10px;height:10px;border-radius:50%;background:${closest.color}"></div>
+        <strong style="color:${closest.color}">${closest.label}</strong>
+      </div>
+      <div style="font-size:0.98rem;color:var(--muted);">Bağlı reaksiyon: <strong style="color:var(--white)">${conn.length}</strong></div>
+      <div style="margin-top:0.35rem;display:flex;flex-wrap:wrap;gap:0.2rem;">
+        ${conn.map(e=>`<span class="tag tag-gold" style="font-size:0.65rem;">${e.label}</span>`).join('')}
+      </div>`;
+  }
+});
+document.getElementById('btn-reset').addEventListener('click',()=>{deletedEdges.clear();highlightPath=false;selectedNode=null;drawNetwork();document.getElementById('network-info').innerHTML='<span style="color:rgba(255,255,255,0.3);font-family:var(--mono);font-size:0.98rem;">← Bir düğüme tıkla</span>';});
+document.getElementById('btn-delete').addEventListener('click',()=>{
+  if(!selectedNode) return;
+  metEdges.forEach((e,i)=>{if(e.from===selectedNode||e.to===selectedNode) deletedEdges.add(i);});
+  const info=document.getElementById('network-info');
+  info.innerHTML+='<div style="margin-top:0.5rem;color:var(--red);font-size:0.98rem;">⚠️ '+selectedNode+' reaksiyonları kaldırıldı!</div>';
+  drawNetwork();
+});
+document.getElementById('btn-highlight-path').addEventListener('click',()=>{highlightPath=!highlightPath;drawNetwork();});
+
+/* ──────────────────────────────────────────
+   SLAYT 13: FBA Simülasyon
+────────────────────────────────────────── */
+const fbaCanvas=document.getElementById('fba-canvas');
+const fctx=fbaCanvas.getContext('2d');
+const FW=fbaCanvas.width, FH=fbaCanvas.height;
+
+function drawFBA(fluxes){
+  fctx.clearRect(0,0,FW,FH);
+  fctx.fillStyle='#0a0a18'; fctx.fillRect(0,0,FW,FH);
+  const nodes=[
+    {label:'Glikoz',  x:220,y:25,  c:'#f59e0b'},
+    {label:'Glikoliz',x:220,y:105, c:'#00d4aa'},
+    {label:'TCA',     x:220,y:185, c:'#7c3aed'},
+    {label:'ATP',     x:75, y:145, c:'#fbbf24'},
+    {label:'Büyüme',  x:360,y:145, c:'#06d6a0'},
+    {label:'Ürün',    x:220,y:265, c:'#ef4444'},
+    {label:'O₂',      x:355,y:55,  c:'rgba(100,200,255,0.8)'},
+  ];
+  const edges=[
+    {f:0,t:1,flux:fluxes.glycolysis},{f:1,t:2,flux:fluxes.tca},
+    {f:1,t:3,flux:fluxes.atp},{f:2,t:3,flux:fluxes.atpTCA},
+    {f:2,t:4,flux:fluxes.growth},{f:2,t:5,flux:fluxes.product},
+    {f:6,t:2,flux:fluxes.o2},
+  ];
+  edges.forEach(e=>{
+    const from=nodes[e.f],to=nodes[e.t];
+    const w=Math.max(1,e.flux*7);
+    fctx.beginPath(); fctx.moveTo(from.x,from.y); fctx.lineTo(to.x,to.y);
+    fctx.strokeStyle=from.c; fctx.lineWidth=w; fctx.globalAlpha=0.45;
+    fctx.stroke(); fctx.globalAlpha=1;
+    const mx=(from.x+to.x)/2+8,my=(from.y+to.y)/2;
+    fctx.font='7px JetBrains Mono'; fctx.fillStyle='rgba(255,255,255,0.5)';
+    fctx.textAlign='center'; fctx.fillText(e.flux.toFixed(1),mx,my);
+  });
+  nodes.forEach(n=>{
+    fctx.beginPath(); fctx.arc(n.x,n.y,16,0,Math.PI*2);
+    fctx.fillStyle=n.c+'44'; fctx.fill();
+    fctx.strokeStyle=n.c; fctx.lineWidth=2; fctx.stroke();
+    fctx.font='bold 8px JetBrains Mono'; fctx.fillStyle='#fff'; fctx.textAlign='center';
+    fctx.fillText(n.label,n.x,n.y+26);
+  });
+}
+
+function calcFBA(){
+  const glc=parseInt(document.getElementById('fba-glc').value);
+  const o2=parseInt(document.getElementById('fba-o2').value);
+  const gr=parseInt(document.getElementById('fba-growth').value)/100;
+  document.getElementById('glc-val').textContent=glc;
+  document.getElementById('o2-val').textContent=o2;
+  document.getElementById('growth-val').textContent=Math.round(gr*100);
+  const glycolysis=glc*0.9, tcaFactor=Math.min(1,o2/7);
+  const tca=glycolysis*tcaFactor*0.7, atpTotal=glycolysis*2+tca*10;
+  const growthFlux=Math.min(tca*0.8,tca*gr);
+  const productFlux=Math.max(0,tca*0.4*(1-gr));
+  const etohFlux=Math.max(0,(glycolysis-tca)*0.5);
+  const sb=(id,v,mx,vi)=>{document.getElementById(id).style.width=Math.min(100,v/mx*100)+'%'; if(vi) document.getElementById(vi).textContent=v.toFixed(1);};
+  sb('fba-atp',atpTotal,80,'fba-atp-val');sb('fba-gr',growthFlux,5,'fba-gr-val');
+  sb('fba-prod',productFlux,3,'fba-prod-val');sb('fba-etoh',etohFlux,3,'fba-etoh-val');
+  const st=document.getElementById('fba-status');
+  if(o2<3){st.textContent='⚠️ Düşük oksijen: Anaerobik koşul. Etanol fermentasyonu aktif.';st.style.background='rgba(239,68,68,0.1)';st.style.borderColor='var(--red)';}
+  else if(gr>0.8){st.textContent='✅ Optimal büyüme modu: Kaynaklar büyümeye yönlendirildi.';st.style.background='rgba(0,212,170,0.1)';st.style.borderColor='var(--cyan)';}
+  else if(productFlux>1.5){st.textContent='🎯 Üretim modu: Hücre ürün sentezine odaklandı.';st.style.background='rgba(124,58,237,0.1)';st.style.borderColor='var(--gold)';}
+  else{st.textContent='⚖️ Dengeli mod: Büyüme ve üretim optimumda.';st.style.background='rgba(245,158,11,0.1)';st.style.borderColor='var(--gold)';}
+  st.style.border='1px solid';
+  drawFBA({glycolysis,tca,atp:atpTotal/10,atpTCA:tca*0.8,growth:growthFlux,product:productFlux,o2:o2*0.3});
+}
+['fba-glc','fba-o2','fba-growth'].forEach(id=>document.getElementById(id).addEventListener('input',calcFBA));
+calcFBA();
+
+/* ──────────────────────────────────────────
+   SLAYT 14: Sentetik Biyoloji
+────────────────────────────────────────── */
+const genesData=[
+  {id:'crtE',name:'crtE',role:'GGPP sentaz (yolak girişi)',    overBoost:30,silPenalty:-10,atpP:-5, grP:-3},
+  {id:'crtB',name:'crtB',role:'Fitoen sentaz (ilk adım)',      overBoost:25,silPenalty:-15,atpP:-3, grP:-5},
+  {id:'crtI',name:'crtI',role:'Fitoen desatüraz (renk adımı)', overBoost:35,silPenalty:-20,atpP:-8, grP:-7},
+  {id:'dxs', name:'dxs', role:'MEP yolak girişi (regülatör)', overBoost:20,silPenalty:-5, atpP:-10,grP:-15},
+  {id:'idi', name:'idi', role:'IPP/DMAPP dengesi',             overBoost:15,silPenalty:-3, atpP:-2, grP:-2},
+  {id:'pgi', name:'pgi', role:'Glikoliz (karbon yönlendirme)', overBoost:-5,silPenalty:10, atpP:-20,grP:-25},
+];
+const geneState={};
+genesData.forEach(g=>geneState[g.id]='normal');
+
+const geneList=document.getElementById('gene-list');
+genesData.forEach(g=>{
+  const div=document.createElement('div'); div.className='gene-toggle'; div.id='gt-'+g.id;
+  div.innerHTML=`<div><div class="gene-name">${g.name}</div><div class="gene-role">${g.role}</div></div>
+    <div class="gene-btns">
+      <button class="t-over" id="over-${g.id}" onclick="toggleGene('${g.id}','over')">↑ Aşırı</button>
+      <button class="t-sil"  id="sil-${g.id}"  onclick="toggleGene('${g.id}','sil')">↓ Sustur</button>
+    </div>`;
+  geneList.appendChild(div);
+});
+
+function toggleGene(id, action){
+  const cur=geneState[id];
+  geneState[id]=cur===action?'normal':action;
+  const gt=document.getElementById('gt-'+id);
+  const ob=document.getElementById('over-'+id);
+  const sb2=document.getElementById('sil-'+id);
+  gt.className='gene-toggle'+(geneState[id]==='over'?' overexpress':geneState[id]==='sil'?' silence':'');
+  ob.className='t-over'+(geneState[id]==='over'?' active':'');
+  sb2.className='t-sil'+(geneState[id]==='sil'?' active':'');
+}
+function runSynbio(){
+  let lyc=0,atp=100,gr=100;
+  genesData.forEach(g=>{
+    if(geneState[g.id]==='over'){lyc+=g.overBoost;atp+=g.atpP;gr+=g.grP;}
+    if(geneState[g.id]==='sil'){lyc+=g.silPenalty;atp-=Math.abs(g.atpP)*0.3;gr-=Math.abs(g.grP)*0.3;}
+  });
+  lyc=Math.max(0,Math.min(100,lyc));atp=Math.max(0,Math.min(100,atp));gr=Math.max(0,Math.min(100,gr));
+  document.getElementById('lycopene-bar').style.width=lyc+'%';
+  document.getElementById('lycopene-pct').textContent=Math.round(lyc)+'%';
+  document.getElementById('atp-bar-synbio').style.width=atp+'%';
+  document.getElementById('atp-pct').textContent=Math.round(atp)+'%';
+  document.getElementById('growth-bar').style.width=gr+'%';
+  document.getElementById('growth-pct').textContent=Math.round(gr)+'%';
+  let msg='';
+  if(lyc>60&&atp>50&&gr>50) msg='🏆 Mükemmel! Yüksek likopen üretimi, sağlıklı büyüme. Gerçekçi bir mühendislik başarısı!';
+  else if(lyc>60) msg='⚠️ Yüksek likopen ama hücre çok zor duruyor. ATP ve büyüme çok düşük — hücre ölür!';
+  else if(lyc<20) msg='😞 Düşük likopen üretimi. crtE, crtB ve crtI genlerini aşırı eksprese etmeyi dene!';
+  else msg='⚖️ Dengeli üretim. crtI\'yi daha da artır, pgi\'yi susturabilirsin.';
+  document.getElementById('synbio-feedback').innerHTML=`<div style="color:var(--white);">${msg}</div>`;
+}
+function resetSynbio(){
+  genesData.forEach(g=>{geneState[g.id]='normal'; toggleGene(g.id,'reset');});
+  ['lycopene-bar','atp-bar-synbio','growth-bar'].forEach((id,i)=>document.getElementById(id).style.width=['0%','100%','100%'][i]);
+  document.getElementById('lycopene-pct').textContent='0%';
+  document.getElementById('atp-pct').textContent='100%';
+  document.getElementById('growth-pct').textContent='100%';
+  document.getElementById('synbio-feedback').textContent='Genleri ayarla ve simülasyonu başlat...';
+  document.getElementById('synbio-feedback').style.color='var(--muted)';
+}
+
+/* ══════════════════════════════════════════════════════
+   GLOSSARY ENGINE
+══════════════════════════════════════════════════════ */
+const GLOSSARY = {
+  'metabolizma': { term: 'Metabolizma', def: 'Bir hücrede veya organizmada gerçekleşen tüm kimyasal reaksiyonların toplamı. Enerji üretiminden protein sentezine kadar her şey metabolizma kapsamındadır.' },
+  'atp': { term: 'ATP', def: 'Adenozin Trifosfat. Hücrenin evrensel enerji para birimi. Kas kasılması, sinir iletimi, protein üretimi — her şey ATP harcar. 1 glikoz = 36-38 ATP üretir.' },
+  'glikoz': { term: 'Glikoz', def: 'Hücrenin temel enerji kaynağı. C₆H₁₂O₆ formülünde 6 karbonlu bir şeker. Glikolizde parçalanarak ATP üretilir. Kandan hücrelere taşınır.' },
+  'enzim': { term: 'Enzim', def: 'Kimyasal reaksiyonları hızlandıran protein katalizörler. Kendisi değişmeden reaksiyonu milyonlarca kat hızlandırır. Her enzim belirli bir reaksiyona özeldir (anahtar-kilit modeli).' },
+  'anabolizma': { term: 'Anabolizma', def: 'Küçük moleküllerden büyük moleküllerin sentezlendiği metabolik süreçler. Enerji gerektirir (ATP harcar). Kas yapımı, protein sentezi, DNA kopyalanması anabolizmadır.' },
+  'katabolizma': { term: 'Katabolizma', def: 'Büyük moleküllerin küçük parçalara yıkıldığı metabolik süreçler. Enerji açığa çıkar (ATP üretilir). Glikoliz, yağ asidi oksidasyonu katabolik süreçlerdir.' },
+  'metabolik yolak': { term: 'Metabolik Yolak', def: 'Enzimler aracılığıyla birbirine bağlı sıralı kimyasal reaksiyonlar dizisi. Bir başlangıç molekülü adım adım farklı ürünlere dönüşür. Glikoliz en bilinen örnektir.' },
+  'glikoliz': { term: 'Glikoliz', def: '10 adımlı metabolik yolak. Glikoz → 2 Pirüvat dönüşümü. Oksijen gerektirmez. Net: 2 ATP + 2 NADH üretir. Sitozolda gerçekleşir. Tüm canlılarda evrenseldir.' },
+  'pirüvat': { term: 'Pirüvat', def: 'Glikolizin son ürünü. 3 karbonlu organik asit. Oksijen varsa mitokondride Krebs döngüsüne girer; oksijen yoksa fermentasyona (laktik asit veya etanol) gider.' },
+  'nadh': { term: 'NADH', def: 'Nikotinamid Adenin Dinükleotid. Enerji taşıyıcı koenzim. Glikoliz ve Krebs döngüsünde üretilir. Elektron taşıma zincirinde her NADH ≈ 2.5 ATP üretir.' },
+  'metabolit': { term: 'Metabolit', def: 'Metabolik reaksiyonlarda yer alan küçük moleküller. Glikoz, pirüvat, ATP, NADH birer metabolittir. Bir metabolitin birden fazla yolakta görevi olabilir.' },
+  'metabolik ağ': { term: 'Metabolik Ağ', def: 'Bir hücredeki tüm metabolik yolakların birbiriyle bağlantılı sistemi. Düğümler = metabolitler, kenarlar = reaksiyonlar. E. coli\'de ~2000 reaksiyon, ~1600 metabolit vardır.' },
+  'fba': { term: 'FBA (Flux Denge Analizi)', def: 'Flux Balance Analysis. Kütle ve enerji korunumu kuralları kullanılarak hücrenin metabolik akışlarını hesaplayan matematiksel yöntem. Hangi reaksiyonun ne kadar aktif olduğunu tahmin eder.' },
+  'flux': { term: 'Flux (Metabolik Akış)', def: 'Bir metabolik reaksiyonun hızı — birim zamanda ne kadar metabolit dönüştürüldüğü. FBA\'nın hesapladığı temel değer. mmol/gDW/h birimi kullanılır.' },
+  'metabolik model': { term: 'Metabolik Model', def: 'Bir organizmanın metabolik ağını matematiksel denklemlerle temsil eden hesaplama aracı. GPS gibi: hangi yolların ne kadar kullanıldığını simüle eder. Gen silme denemelerini bilgisayarda yapar.' },
+  'sentetik biyoloji': { term: 'Sentetik Biyoloji', def: 'Biyolojik sistemleri mühendislik prensiplerine göre tasarımlamak. Yeni genler eklemek, genleri susturmak veya aşırı eksprese etmek yoluyla hücreyi yeni işlevler için programlamak.' },
+  'likopen': { term: 'Likopen', def: 'Domates ve kırmızı meyvelere kırmızı renk veren karotenoid pigment. Güçlü antioksidan özellikleri var. E. coli\'de doğal olarak üretilmez ama sentetik biyoloji ile üretilebilir.' },
+  'pfk-1': { term: 'PFK-1 (Fosfofruktokinaz-1)', def: 'Glikolizin hız sınırlayıcı enzimi. ATP yüksekken inhibe olur — hücrenin enerji sensörü gibi çalışır. Bu noktayı kontrol etmek glikolizin tüm hızını etkiler.' },
+  'escher': { term: 'Escher', def: 'Metabolik haritaları interaktif olarak görüntüleyen ve FBA sonuçlarını üzerinde gösteren web tabanlı araç. escher.github.io adresinde ücretsiz kullanılabilir.' },
+  'krebs': { term: 'Krebs Döngüsü / TCA', def: 'Trikarbosilik Asit Döngüsü. Pirüvatın mitokondrida tamamen yıkıldığı döngü. 8 adımda CO₂ çıkar, NADH ve FADH₂ üretilir. Elektron taşıma zinciri için yakıt sağlar.' },
+  'mitokondri': { term: 'Mitokondri', def: 'Hücrenin enerji merkezi. Krebs döngüsü ve elektron taşıma zinciri burada gerçekleşir. Kendi DNA\'sı vardır. İyi havalandırılan kaslar çok sayıda mitokondri içerir.' },
+  'dna': { term: 'DNA', def: 'Deoksiribünükleik Asit. Hücrenin genetik bilgisini saklayan çift sarmal molekül. A, T, G, C bazlarından oluşur. Her protein için yapım planını içerir.' },
+  'protein': { term: 'Protein', def: 'Amino asitlerden oluşan ve hücrenin tüm işlerini yapan büyük moleküller. Enzimler, yapısal proteinler, hormonlar, taşıyıcılar hep proteindir.' },
+  'gen': { term: 'Gen', def: 'DNA\'nın belirli bir proteini kodlayan bölümü. İnsan genomunda ~25.000 gen var. Bir gen \"açık\" ise protein üretilir; \"kapalı\" ise üretilmez.' },
+  'omiks': { term: 'Omiks', def: 'Genomiks, transkriptomiks, proteomiks, metabolomiks — hücrenin farklı moleküler katmanlarını bütünsel olarak inceleyen bilim dallarının ortak adı.' },
+  'fermentasyon': { term: 'Fermentasyon', def: 'Oksijensiz koşullarda pirüvatın laktik asit veya etanole dönüştürüldüğü süreç. Ekmek mayası oksijensiz etanol üretir. Kas yorgunluğunda laktik asit birikir.' },
+};
+
+const popup2 = document.getElementById('glossary-popup');
+const gpTerm2 = document.getElementById('gp-term');
+const gpDef2  = document.getElementById('gp-def');
+let popupOpen2 = false;
+
+function showGlossary2(el, key) {
+  const entry = GLOSSARY[key.toLowerCase()];
+  if (!entry) return;
+  gpTerm2.textContent = entry.term;
+  gpDef2.textContent  = entry.def;
+  const rect = el.getBoundingClientRect();
+  const pw = 320, ph = 130;
+  let left = rect.left;
+  let top  = rect.bottom + 8;
+  if (left + pw > window.innerWidth - 16) left = window.innerWidth - pw - 16;
+  if (top + ph > window.innerHeight - 16) top = rect.top - ph - 8;
+  popup2.style.left = left + 'px';
+  popup2.style.top  = top  + 'px';
+  popup2.classList.add('show');
+  popupOpen2 = true;
+}
+function hideGlossary2() { popup2.classList.remove('show'); popupOpen2 = false; }
+
+document.getElementById('gp-close').addEventListener('click', e => { e.stopPropagation(); hideGlossary2(); });
+document.addEventListener('click', e => {
+  const el = e.target.closest('.gl');
+  if (el) {
+    e.stopPropagation();
+    const key = el.dataset.term;
+    if (popupOpen2 && gpTerm2.textContent === (GLOSSARY[key] || {}).term) { hideGlossary2(); return; }
+    showGlossary2(el, key);
+    return;
+  }
+  if (!e.target.closest('#glossary-popup')) hideGlossary2();
+});
+</script>
+</body>
+</html>
+

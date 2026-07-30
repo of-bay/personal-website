@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ders 1: Genden RNA'ya | BioLab Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #06060f;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --cyan: #00d4aa;
+      --purple: #7c3aed;
+      --gold: #f59e0b;
+      --red: #ef4444;
+      --white: #fff;
+      --muted: rgba(255,255,255,0.55);
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%; overflow: hidden;
+      background: var(--bg); color: var(--white);
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ══ TOPBAR ══════════════════════════════════════════ */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 52px; display: flex; align-items: center;
+      padding: 0 1.5rem; gap: 1rem;
+      background: rgba(6,6,15,0.92); border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+    }
+    .topbar-logo { font-family: var(--mono); font-size: 0.78rem; color: var(--cyan); font-weight: 600; }
+    .topbar-title { flex: 1; font-size: 0.82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .topbar-counter { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+    .topbar-home { font-size: 0.78rem; color: var(--muted); text-decoration: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.6rem; transition: all 0.2s; }
+    .topbar-home:hover { color: var(--white); border-color: rgba(255,255,255,0.2); }
+
+    /* Progress dots */
+    .slide-dots { display: flex; gap: 4px; align-items: center; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); transition: all 0.3s; cursor: pointer; }
+    .dot.active { background: var(--cyan); width: 16px; border-radius: 3px; }
+    .dot.done { background: rgba(0,212,170,0.3); }
+
+    /* ══ SLIDES ══════════════════════════════════════════ */
+    .slides-wrap {
+      position: fixed; inset: 52px 0 56px 0;
+      overflow: hidden;
+    }
+    .slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      padding: 2rem 3rem 1.5rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      transform: translateX(30px);
+      overflow-y: auto;
+    }
+    .slide.active {
+      opacity: 1; pointer-events: auto; transform: translateX(0);
+    }
+    .slide.exit-left {
+      opacity: 0; transform: translateX(-30px); pointer-events: none;
+    }
+
+    /* ══ BOTTOMBAR ══════════════════════════════════════ */
+    .bottombar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      height: 56px; display: flex; align-items: center;
+      padding: 0 1.5rem; gap: 1rem;
+      background: rgba(6,6,15,0.92); border-top: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+    }
+    .nav-btn {
+      height: 36px; padding: 0 1.25rem; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--card);
+      color: var(--white); font-family: var(--mono); font-size: 0.78rem;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .nav-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+    .nav-btn:disabled { opacity: 0.3; cursor: default; }
+    .nav-btn.next-btn { background: rgba(0,212,170,0.1); border-color: rgba(0,212,170,0.3); color: var(--cyan); margin-left: auto; }
+    .nav-btn.next-btn:hover { background: rgba(0,212,170,0.2); }
+    .progress-bar {
+      flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+    }
+    .progress-fill { height: 100%; background: var(--cyan); border-radius: 2px; transition: width 0.4s ease; }
+    .key-hint { font-family: var(--mono); font-size: 0.68rem; color: rgba(255,255,255,0.2); }
+
+    /* ══ SLIDE LAYOUT HELPERS ═══════════════════════════ */
+    .slide-label {
+      font-family: var(--mono); font-size: 0.85rem; letter-spacing: 0.12em;
+      color: var(--cyan); text-transform: uppercase; margin-bottom: 0.5rem;
+    }
+    .slide h1 { font-size: clamp(2.4rem, 5vw, 4rem); font-weight: 800; line-height: 1.15; margin-bottom: 0.75rem; }
+    .slide h2 { font-size: clamp(1.9rem, 3.5vw, 2.8rem); font-weight: 800; line-height: 1.2; margin-bottom: 0.75rem; }
+    .slide h3 { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .slide p  { font-size: 1.15rem; color: var(--muted); line-height: 1.85; }
+    .accent-cyan { color: var(--cyan); }
+    .accent-gold { color: var(--gold); }
+    .accent-purple { color: #a78bfa; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; flex: 1; }
+    .three-col { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
+    .four-col { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.25rem;
+    }
+    .card-cyan { border-color: rgba(0,212,170,0.2); background: rgba(0,212,170,0.05); }
+    .card-gold { border-color: rgba(245,158,11,0.2); background: rgba(245,158,11,0.05); }
+    .card-purple { border-color: rgba(124,58,237,0.2); background: rgba(124,58,237,0.05); }
+    .card-red { border-color: rgba(239,68,68,0.2); background: rgba(239,68,68,0.05); }
+
+    .fact-box {
+      background: rgba(0,212,170,0.06); border: 1px solid rgba(0,212,170,0.2);
+      border-radius: 12px; padding: 1rem 1.25rem;
+      font-size: 1.05rem; color: rgba(255,255,255,0.8);
+      display: flex; gap: 0.75rem; align-items: flex-start;
+    }
+    .fact-box.gold { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.2); }
+    .fact-box.purple { background: rgba(124,58,237,0.06); border-color: rgba(124,58,237,0.2); }
+    .fact-icon { font-size: 1.5rem; flex-shrink: 0; }
+
+    .tag {
+      display: inline-block; padding: 0.2rem 0.6rem; border-radius: 6px;
+      font-family: var(--mono); font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .tag-cyan { background: rgba(0,212,170,0.12); color: var(--cyan); border: 1px solid rgba(0,212,170,0.25); }
+    .tag-gold { background: rgba(245,158,11,0.12); color: var(--gold); border: 1px solid rgba(245,158,11,0.25); }
+    .tag-purple { background: rgba(124,58,237,0.12); color: #a78bfa; border: 1px solid rgba(124,58,237,0.25); }
+
+    img.full { width: 100%; border-radius: 14px; display: block; border: 1px solid var(--border); }
+    .stat-big { font-size: 2.8rem; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 1rem; color: var(--muted); margin-top: 0.3rem; }
+
+    /* ══ SLIDE-SPECIFIC: Dogma tıklama butonları ════════ */
+    .dogma-btns { display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 0.75rem 0; }
+    .dogma-btn {
+      padding: 0.6rem 1.2rem; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--card); color: var(--muted); font-size: 1rem;
+      cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .dogma-btn:hover, .dogma-btn.active {
+      border-color: rgba(0,212,170,0.4); color: var(--cyan);
+      background: rgba(0,212,170,0.08);
+    }
+    .dogma-detail { display: none; }
+    .dogma-detail.show { display: block; animation: fadeIn 0.25s ease; }
+
+    /* ══ SLIDE-SPECIFIC: Omiks kartları ═════════════════ */
+    .omics-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.75rem; }
+    .omics-btn {
+      border-radius: 12px; padding: 1.25rem; cursor: pointer;
+      border: 1px solid var(--border); background: var(--card);
+      transition: all 0.25s; text-align: left;
+    }
+    .omics-btn:hover, .omics-btn.active { transform: translateY(-2px); }
+    .omics-detail-box {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem; margin-top: 0.75rem;
+      font-size: 1.05rem; min-height: 90px; transition: all 0.3s;
+    }
+
+    /* ══ SLIDE-SPECIFIC: RNA-seq accordion ══════════════ */
+    .rnaseq-acc { display: flex; flex-direction: column; gap: 0.5rem; }
+    .acc-item { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card); }
+    .acc-header {
+      display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 1.1rem;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .acc-header:hover { background: rgba(255,255,255,0.03); }
+    .acc-num {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 0.85rem; font-weight: 700;
+      background: rgba(0,212,170,0.1); color: var(--cyan); border: 1px solid rgba(0,212,170,0.25);
+    }
+    .acc-title { font-weight: 600; font-size: 1.05rem; flex: 1; }
+    .acc-time { font-family: var(--mono); font-size: 0.88rem; color: var(--muted); }
+    .acc-arrow { color: var(--muted); font-size: 0.9rem; transition: transform 0.25s; }
+    .acc-item.open .acc-arrow { transform: rotate(90deg); }
+    .acc-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; padding: 0 1rem; }
+    .acc-item.open .acc-body { max-height: 150px; padding: 0 1rem 0.9rem; }
+    .acc-body p { font-size: 1rem; color: var(--muted); }
+    .acc-body .tech { margin-top: 0.4rem; font-family: var(--mono); font-size: 0.9rem; color: var(--cyan); background: rgba(0,212,170,0.06); border-radius: 6px; padding: 0.4rem 0.7rem; }
+
+    /* ══ SLIDE-SPECIFIC: Heatmap ═════════════════════════ */
+    .heatmap-layout { display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem; align-items: start; }
+    .heatmap-table { }
+    .hm-row { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
+    .hm-gene { width: 80px; font-family: var(--mono); font-size: 0.82rem; color: var(--muted); text-align: right; padding-right: 8px; flex-shrink: 0; }
+    .hm-cell { width: 46px; height: 38px; border-radius: 5px; cursor: pointer; flex-shrink: 0; transition: transform 0.15s, box-shadow 0.15s; }
+    .hm-cell:hover { transform: scale(1.15); z-index: 2; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+    .hm-col-headers { display: flex; gap: 4px; margin-bottom: 4px; padding-left: 88px; }
+    .hm-col-hdr { width: 46px; text-align: center; font-family: var(--mono); font-size: 0.82rem; flex-shrink: 0; }
+    .heatmap-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+    .hm-val { font-family: var(--mono); font-size: 1.8rem; font-weight: 700; margin: 0.3rem 0; }
+    .hm-legend { display: flex; gap: 3px; align-items: center; margin: 0.5rem 0; }
+    .hm-legend-bar { flex: 1; height: 10px; border-radius: 4px; background: linear-gradient(90deg,#1e3a5f,#00d4aa,#fffbf0,#ff6b35,#c0392b); }
+    .hm-legend-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+    .gene-chip { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-family: var(--mono); font-size: 0.82rem; margin: 2px; }
+
+    /* ══ SLIDE-SPECIFIC: Timeline ════════════════════════ */
+    .tl-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+    .tl-list { display: flex; flex-direction: column; gap: 0; overflow-y: auto; max-height: calc(100vh - 200px); }
+    .tl-item { display: flex; gap: 0.75rem; padding: 0.75rem 0.9rem; cursor: pointer; border-radius: 8px; transition: background 0.2s; }
+    .tl-item:hover, .tl-item.active { background: rgba(0,212,170,0.06); }
+    .tl-item.future:hover, .tl-item.future.active { background: rgba(245,158,11,0.06); }
+    .tl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; border: 2px solid var(--cyan); background: var(--bg); transition: background 0.2s; }
+    .tl-item.active .tl-dot { background: var(--cyan); }
+    .tl-item.future .tl-dot { border-color: var(--gold); }
+    .tl-item.future.active .tl-dot { background: var(--gold); }
+    .tl-year { font-family: var(--mono); font-size: 0.9rem; color: var(--cyan); font-weight: 600; margin-bottom: 0.1rem; }
+    .tl-item.future .tl-year { color: var(--gold); }
+    .tl-title { font-weight: 600; font-size: 1rem; }
+    .tl-short { font-size: 0.88rem; color: var(--muted); }
+    .tl-panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; position: sticky; top: 0; }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .slide { padding: 1.5rem 1.25rem 1rem; }
+      .two-col, .three-col, .four-col { grid-template-columns: 1fr; }
+      .omics-grid { grid-template-columns: repeat(2,1fr); }
+      .heatmap-layout { grid-template-columns: 1fr; }
+      .tl-wrap { grid-template-columns: 1fr; }
+    }
+
+    /* Slayt 1 - özel hero stili */
+    .slide-hero { justify-content: center; align-items: center; text-align: center; }
+    .hero-badge { font-family: var(--mono); font-size: 0.9rem; color: var(--muted); border: 1px solid var(--border); border-radius: 20px; padding: 0.35rem 1.1rem; display: inline-block; margin-bottom: 1.5rem; }
+    .hero-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.75rem; margin-top: 2rem; max-width: 600px; }
+    .hero-stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+    .hero-stat-n { font-size: 1.8rem; font-weight: 800; }
+    .hero-stat-l { font-size: 0.95rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* ══ GLOSSARY TOOLTIPS ══════════════════════════════ */
+    .gl {
+      color: var(--cyan);
+      border-bottom: 1px dashed rgba(0,212,170,0.5);
+      cursor: pointer;
+      position: relative;
+      transition: color 0.15s;
+      white-space: nowrap;
+    }
+    .gl:hover { color: #fff; border-bottom-color: var(--cyan); }
+
+    #glossary-popup {
+      position: fixed;
+      z-index: 999;
+      max-width: 320px;
+      min-width: 220px;
+      background: #12121f;
+      border: 1px solid rgba(0,212,170,0.35);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,212,170,0.08);
+      backdrop-filter: blur(16px);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px) scale(0.97);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    #glossary-popup.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+    #glossary-popup .gp-term {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--cyan);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+    #glossary-popup .gp-def {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.65;
+    }
+    #glossary-popup .gp-close {
+      position: absolute; top: 0.5rem; right: 0.65rem;
+      font-size: 0.9rem; color: var(--muted);
+      cursor: pointer; line-height: 1;
+    }
+    #glossary-popup .gp-close:hover { color: var(--white); }
+  </style>
+</head>
+<body>
+
+<!-- GLOSSARY POPUP -->
+<div id="glossary-popup">
+  <div class="gp-close" id="gp-close">×</div>
+  <div class="gp-term" id="gp-term"></div>
+  <div class="gp-def" id="gp-def"></div>
+</div>
+
+<!-- ══ TOPBAR ══════════════════════════════════════════════ -->
+<div class="topbar">
+  <span class="topbar-logo">BioLab</span>
+  <span class="topbar-title" id="slide-title-bar">Genden RNA'ya</span>
+  <div class="slide-dots" id="dots"></div>
+  <span class="topbar-counter" id="counter">1 / 16</span>
+  <a href="index.html" class="topbar-home">⌂ Menü</a>
+</div>
+
+<!-- ══ SLIDES ══════════════════════════════════════════════ -->
+<div class="slides-wrap" id="slides-wrap">
+
+<!-- ─────────────────── SLAYT 1: BAŞLIK ─────────────────── -->
+<div class="slide active slide-hero" data-title="Genden RNA'ya">
+  <div style="display:flex;flex-direction:column;align-items:center;max-width:700px;margin:auto;">
+    <span class="hero-badge">TÜBİTAK 4004 · Fen Lisesi · 2025</span>
+    <h1 style="font-size:clamp(2.2rem,5vw,4rem); margin-bottom:0.5rem;">
+      Genden <span class="accent-cyan">RNA'ya</span>
+    </h1>
+    <p style="font-size:1.1rem; max-width:500px; text-align:center; color:var(--muted); margin-bottom:2rem;">
+      <span class="gl" data-term="omiks">Omiks</span> Teknolojilerine Giriş — Hücrenin gizli dilini nasıl okuyoruz?
+    </p>
+    <div class="hero-grid" style="width:100%;">
+      <div class="hero-stat card-cyan" style="border-radius:12px; padding:1rem; background:rgba(0,212,170,0.05); border:1px solid rgba(0,212,170,0.2);">
+        <div class="hero-stat-n accent-cyan">60 dk</div>
+        <div class="hero-stat-l">Ders Süresi</div>
+      </div>
+      <div class="hero-stat" style="border-radius:12px; padding:1rem; background:var(--card); border:1px solid var(--border);">
+        <div class="hero-stat-n" style="color:#a78bfa">6+</div>
+        <div class="hero-stat-l">Omiks Dalı</div>
+      </div>
+      <div class="hero-stat card-gold" style="border-radius:12px; padding:1rem; background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2);">
+        <div class="hero-stat-n accent-gold">16</div>
+        <div class="hero-stat-l">Slayt</div>
+      </div>
+    </div>
+    <p style="margin-top:2rem; font-family:var(--mono); font-size:0.9rem; color:rgba(255,255,255,0.2);">
+      Klavye: ← → &nbsp;|&nbsp; Boşluk: ileri &nbsp;|&nbsp; Öğrenciler: aynı dosyayı açın
+    </p>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 2: BÜYÜK SORU ─────────────── -->
+<div class="slide" data-title="Neden Bu Dersi Alıyoruz?">
+  <div class="slide-label">BAŞLANGIÇ NOKTASI</div>
+  <h2>Cevabını Bilmek İstediğimiz<br><span class="accent-cyan">3 Büyük Soru</span></h2>
+  <div class="three-col" style="margin-top:1.5rem; flex:1;">
+    <div class="card card-cyan" style="padding:1.5rem;">
+      <div style="font-size:2rem; margin-bottom:0.75rem;">🦠</div>
+      <h3 style="color:var(--cyan); margin-bottom:0.6rem;">Kanser neden oluşur?</h3>
+      <p>Kanser hücrelerinde bazı <span class="gl" data-term="gen">genler</span> normalin <strong style="color:var(--white)">1000 katı</strong> aktif hale gelir. Bu farkı nasıl tespit edebiliriz?</p>
+    </div>
+    <div class="card card-purple" style="padding:1.5rem;">
+      <div style="font-size:2rem; margin-bottom:0.75rem;">💊</div>
+      <h3 style="color:#a78bfa; margin-bottom:0.6rem;">Neden aynı ilaç herkese işe yaramaz?</h3>
+      <p>Her insanın genetik kodu farklı. Kişiye özel tedavi için <span class="gl" data-term="dna">DNA</span> ve <span class="gl" data-term="rna">RNA</span>'yı okumamız gerekir.</p>
+    </div>
+    <div class="card card-gold" style="padding:1.5rem;">
+      <div style="font-size:2rem; margin-bottom:0.75rem;">🦠</div>
+      <h3 style="color:var(--gold); margin-bottom:0.6rem;">COVID-19 nasıl bu kadar hızlı tanımlandı?</h3>
+      <p><span class="gl" data-term="ngs">Yeni Nesil Dizileme</span> teknolojisi ile virüsün genomu <strong style="color:var(--white)">48 saatte</strong> okundu ve tüm dünyayla paylaşıldı.</p>
+    </div>
+  </div>
+  <div class="fact-box" style="margin-top:1.25rem;">
+    <span class="fact-icon">💡</span>
+    <p>Bu soruların hepsinin cevabı <strong style="color:var(--white)">OMİKS TEKNOLOJİLERİ</strong>'nde gizli. Hücrenin <span class="gl" data-term="dna">DNA</span>'sını, <span class="gl" data-term="rna">RNA</span>'sını ve <span class="gl" data-term="protein">proteinlerini</span> toplu olarak ölçen bu devrimci yaklaşımı bugün öğreniyoruz.</p>
+  </div>
+</div>
+
+
+<!-- ─────────────────── SLAYT 3: DNA ─────────────────────── -->
+<div class="slide" data-title="DNA: Yaşamın Şifresi">
+  <div class="slide-label">TEMEL KAVRAM</div>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <h2>DNA:<br><span class="accent-cyan">Yaşamın Şifresi</span></h2>
+      <p style="margin:0.75rem 0 1.25rem;"><span class="gl" data-term="dna">DNA</span>, dört harften oluşan bir şifredir: <strong style="color:var(--cyan)">A, T, G, C</strong>. Bu dört harf, tüm canlılığın kitabını yazar.</p>
+      <div style="display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1.25rem;">
+        <div class="card" style="padding:0.9rem; display:flex; align-items:center; gap:1rem;">
+          <span style="font-size:1.5rem;">🧬</span>
+          <div>
+            <div style="font-weight:700; margin-bottom:0.2rem;">Yapı: Çift Sarmal</div>
+            <div style="font-size:0.98rem; color:var(--muted);">1953'te Watson & Crick keşfetti. A=T, G≡C baz eşleşmesi.</div>
+          </div>
+        </div>
+        <div class="card" style="padding:0.9rem; display:flex; align-items:center; gap:1rem;">
+          <span style="font-size:1.5rem;">📏</span>
+          <div>
+            <div style="font-weight:700; margin-bottom:0.2rem;">Boyut: 3,2 Milyar Baz Çifti</div>
+            <div style="font-size:0.98rem; color:var(--muted);">46 kromozomda, her hücrede. Uzunluğu ~2 metre.</div>
+          </div>
+        </div>
+        <div class="card" style="padding:0.9rem; display:flex; align-items:center; gap:1rem;">
+          <span style="font-size:1.5rem;">⚙️</span>
+          <div>
+            <div style="font-weight:700; margin-bottom:0.2rem;">İçerik: ~25.000 <span class="gl" data-term="gen">Gen</span></div>
+            <div style="font-size:0.98rem; color:var(--muted);"><span class="gl" data-term="protein">Protein</span> şifreleyen bölgeler. Geri kalanı düzenleyici bölgeler.</div>
+          </div>
+        </div>
+      </div>
+      <div class="fact-box gold">
+        <span class="fact-icon">🤯</span>
+        <p><strong style="color:var(--gold)">Şaşırtıcı gerçek:</strong> Bir hücredeki <span class="gl" data-term="dna">DNA</span>'yı düz açsak 2 metre uzunluğunda olurdu. Vücudumuzdaki tüm DNA'yı uç uca dizsek Güneş'e 600 kez gidip gelebilirdik!</p>
+      </div>
+    </div>
+    <div>
+      <div class="card card-cyan" style="padding:1.5rem; margin-bottom:1rem;">
+        <h3 style="color:var(--cyan); margin-bottom:1rem;">🔑 Kritik Soru</h3>
+        <p style="font-size:0.95rem; line-height:1.8;">Vücudumuzdaki <strong style="color:var(--white)">37 trilyon hücrenin hepsinde aynı <span class="gl" data-term="dna">DNA</span></strong> var. Ama bir karaciğer hücresi sinir hücresinden çok farklı davranıyor.</p>
+        <p style="margin-top:0.75rem; font-size:0.95rem;">Neden?</p>
+        <p style="margin-top:0.5rem; font-size:1.05rem; color:var(--muted);">Çünkü her hücre türünde farklı <span class="gl" data-term="gen">genler</span> <strong style="color:var(--cyan)">"açık"</strong> veya <strong style="color:var(--muted)">"kapalı"</strong>. Bu ders boyunca bunu nasıl ölçeceğimizi öğreneceğiz.</p>
+      </div>
+      <div class="four-col" style="gap:0.75rem;">
+        <div style="text-align:center; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:0.75rem;">
+          <div class="stat-big accent-cyan">4</div>
+          <div class="stat-label">Baz (A,T,G,C)</div>
+        </div>
+        <div style="text-align:center; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:0.75rem;">
+          <div class="stat-big" style="color:#a78bfa">46</div>
+          <div class="stat-label">Kromozom</div>
+        </div>
+        <div style="text-align:center; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:0.75rem;">
+          <div class="stat-big accent-gold">3,2G</div>
+          <div class="stat-label">Baz çifti</div>
+        </div>
+        <div style="text-align:center; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:0.75rem;">
+          <div class="stat-big" style="color:var(--red)">25K</div>
+          <div class="stat-label">Gen sayısı</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 4: MERKEZİ DOGMA ──────────── -->
+<div class="slide" data-title="Merkezi Dogma">
+  <div class="slide-label">BİYOLOJİNİN TEMEL YASASI</div>
+  <h2>Merkezi Dogma:<br><span class="accent-cyan">DNA → RNA → Protein</span></h2>
+  <p style="max-width:600px; margin:0.5rem 0 1.25rem;">Tüm canlılarda bilgi tek yönde akar. Francis Crick'in 1958'de tanımladığı bu yasa, modern biyolojinin omurgasıdır. Bu ders boyunca her adımı öğreneceğiz.</p>
+  <div class="two-col" style="flex:1; align-items:center;">
+    <img src="assets/central_dogma.png" alt="Merkezi Dogma: DNA→mRNA→Protein" class="full">
+    <div>
+      <div class="dogma-btns" id="dogma-btns">
+        <button class="dogma-btn" data-key="replikasyon">🔄 Replikasyon</button>
+        <button class="dogma-btn" data-key="transkripsiyon">✏️ <span class="gl" data-term="transkripsiyon">Transkripsiyon</span></button>
+        <button class="dogma-btn" data-key="translasyon">🏭 <span class="gl" data-term="translasyon">Translasyon</span></button>
+      </div>
+      <div id="dogma-detail" style="margin-top:0.5rem;">
+        <div class="card" style="padding:1.25rem;">
+          <p style="color:rgba(255,255,255,0.4); font-family:var(--mono); font-size:0.98rem;">← Yukarıdan bir kavram seç</p>
+        </div>
+      </div>
+      <div class="fact-box" style="margin-top:1rem;">
+        <span class="fact-icon">🔑</span>
+        <p><strong style="color:var(--white)">Omiks bağlantısı:</strong><br>
+        <span class="gl" data-term="dna">DNA</span> → <span class="tag tag-cyan">Genomiks</span><br>
+        <span class="gl" data-term="rna">RNA</span> → <span class="tag tag-purple">Transkriptomiks</span><br>
+        <span class="gl" data-term="protein">Protein</span> → <span class="tag tag-gold">Proteomiks</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 5: TRANSKRİPSİYON ─────────── -->
+<div class="slide" data-title="Transkripsiyon: Genin Sesi">
+  <div class="slide-label">ADIM 1: DNA → mRNA</div>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <h2>Transkripsiyon:<br><span class="accent-cyan">Genin Sesi</span></h2>
+      <p style="margin:0.75rem 0 1.25rem;"><span class="gl" data-term="dna">DNA</span>'nın ilgili bölgesi okunarak <span class="gl" data-term="mrna">mesajcı RNA (mRNA)</span> sentezlenir. Tüm bu işi <strong style="color:var(--white)">RNA Polimeraz</strong> enzimi yapar.</p>
+
+      <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.25rem;">
+        <div class="card" style="padding:0.9rem;">
+          <div style="display:flex; gap:0.75rem; align-items:center;">
+            <span style="font-size:1.2rem;">1️⃣</span>
+            <div>
+              <div style="font-weight:700; font-size:1.05rem; margin-bottom:0.2rem;">Başlangıç</div>
+              <p style="font-size:0.98rem; margin:0;">RNA Polimeraz, genin başına (promoter) bağlanır ve DNA'yı açar.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:0.9rem;">
+          <div style="display:flex; gap:0.75rem; align-items:center;">
+            <span style="font-size:1.2rem;">2️⃣</span>
+            <div>
+              <div style="font-weight:700; font-size:1.05rem; margin-bottom:0.2rem;">Uzama</div>
+              <p style="font-size:0.98rem; margin:0;">DNA şablonundan mRNA sentezlenir. T yerine U (Urasil) kullanılır.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:0.9rem;">
+          <div style="display:flex; gap:0.75rem; align-items:center;">
+            <span style="font-size:1.2rem;">3️⃣</span>
+            <div>
+              <div style="font-weight:700; font-size:1.05rem; margin-bottom:0.2rem;">Olgunlaşma (Splicing)</div>
+              <p style="font-size:0.98rem; margin:0;">İşe yaramayan intronlar çıkarılır, eksonlar birleştirilir. Bir genden farklı proteinler üretilebilir!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fact-box gold">
+        <span class="fact-icon">💡</span>
+        <p><strong style="color:var(--gold)">Analoji:</strong> DNA bir kütüphanedeki ansiklopedi gibidir — tümü orada durur ama sen sadece ihtiyaç duyduğun sayfayı fotokopi çekersin. mRNA o fotokopi.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card card-cyan" style="padding:1.5rem; margin-bottom:1rem;">
+        <h3 style="color:var(--cyan); margin-bottom:0.75rem;">Gen Regülasyonu: Gizli Anahtar</h3>
+        <p style="font-size:1.05rem; line-height:1.75;">Her hücre türünde <strong style="color:var(--white)">transkripsiyon faktörleri</strong> hangi genlerin okunacağına karar verir. Bu yüzden aynı DNA'ya sahip hücreler çok farklı davranır.</p>
+        <div style="margin-top:1rem; display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+          <div style="background:rgba(0,212,170,0.06); border-radius:8px; padding:0.75rem; text-align:center;">
+            <div style="font-size:1.2rem;">🧠</div>
+            <div style="font-size:0.92rem; margin-top:0.3rem;">Sinir hücresinde<br>aktif genler</div>
+          </div>
+          <div style="background:rgba(245,158,11,0.06); border-radius:8px; padding:0.75rem; text-align:center;">
+            <div style="font-size:1.2rem;">🫀</div>
+            <div style="font-size:0.92rem; margin-top:0.3rem;">Karaciğer hücresinde<br>aktif genler</div>
+          </div>
+        </div>
+        <p style="font-size:0.95rem; color:var(--muted); margin-top:0.75rem;">Aynı DNA → Farklı genler açık/kapalı → Farklı hücre!</p>
+      </div>
+      <div class="fact-box purple">
+        <span class="fact-icon">⚡</span>
+        <p>Kanser hücrelerinde transkripsiyon faktörleri bozulur. Yanlış genler açılır, hücre kontrolsüz bölünmeye başlar. <strong style="color:var(--white)">Transkriptomiks</strong> bu farkı tespit eder.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 6: TRANSLASYON ─────────────── -->
+<div class="slide" data-title="Translasyon: Protein Üretimi">
+  <div class="slide-label">ADIM 2: mRNA → PROTEİN</div>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <h2>Translasyon:<br><span class="accent-gold">Proteinin Doğuşu</span></h2>
+      <p style="margin:0.75rem 0 1.25rem;">Ribozom adlı organel mRNA'yı okur ve amino asitleri birbirine bağlayarak protein yapar. Bu süreç hücrenin üretim bandıdır.</p>
+      <div class="card" style="padding:1.25rem; margin-bottom:1rem;">
+        <h3 style="color:var(--gold); margin-bottom:0.75rem;">Kodon Sistemi</h3>
+        <p style="font-size:1.05rem; line-height:1.75;">mRNA üzerindeki her <strong style="color:var(--white)">3 baz = 1 kodon = 1 amino asit.</strong> 4³ = 64 farklı kodon mümkün, bunlar 20 farklı amino aside karşılık gelir.</p>
+        <div style="margin-top:0.75rem; display:flex; gap:0.4rem; flex-wrap:wrap;">
+          <span style="background:rgba(0,212,170,0.1); border-radius:6px; padding:0.25rem 0.5rem; font-family:var(--mono); font-size:0.9rem; color:var(--cyan);">AUG = Başla (Met)</span>
+          <span style="background:rgba(239,68,68,0.1); border-radius:6px; padding:0.25rem 0.5rem; font-family:var(--mono); font-size:0.9rem; color:var(--red);">UAA = Dur</span>
+          <span style="background:rgba(245,158,11,0.1); border-radius:6px; padding:0.25rem 0.5rem; font-family:var(--mono); font-size:0.9rem; color:var(--gold);">GCU = Ala</span>
+        </div>
+      </div>
+      <div class="fact-box">
+        <span class="fact-icon">🍕</span>
+        <p><strong style="color:var(--white)">Analoji:</strong> mRNA = Tarif, Ribozom = Şef, Amino asitler = Malzemeler, Protein = Yemek. Aynı tarifi farklı şefler farklı pişirebilir — bu translasyon sonrası düzenleme (post-translational modification)!</p>
+      </div>
+    </div>
+    <div>
+      <div class="three-col" style="gap:0.75rem; margin-bottom:1rem;">
+        <div style="text-align:center; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:0.85rem;">
+          <div class="stat-big accent-gold">20</div>
+          <div class="stat-label">Amino asit çeşidi</div>
+        </div>
+        <div style="text-align:center; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:0.85rem;">
+          <div class="stat-big accent-cyan">64</div>
+          <div class="stat-label">Kodon çeşidi</div>
+        </div>
+        <div style="text-align:center; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:0.85rem;">
+          <div class="stat-big" style="color:#a78bfa">10K+</div>
+          <div class="stat-label">Farklı protein</div>
+        </div>
+      </div>
+      <div class="card card-gold" style="padding:1.25rem; margin-bottom:0.75rem;">
+        <h3 style="color:var(--gold); margin-bottom:0.75rem;">Proteinler Ne İş Yapar?</h3>
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <div style="display:flex; gap:0.75rem; font-size:1.0rem;"><span>🏗️</span><span><strong>Yapı:</strong> Kollajen (deri, kemik, kıkırdak)</span></div>
+          <div style="display:flex; gap:0.75rem; font-size:1.0rem;"><span>⚡</span><span><strong>Enzim:</strong> Kimyasal reaksiyonları hızlandırır</span></div>
+          <div style="display:flex; gap:0.75rem; font-size:1.0rem;"><span>📡</span><span><strong>Hormon:</strong> İnsülin, büyüme hormonu</span></div>
+          <div style="display:flex; gap:0.75rem; font-size:1.0rem;"><span>🛡️</span><span><strong>Antikor:</strong> Bağışıklık sistemi savunması</span></div>
+          <div style="display:flex; gap:0.75rem; font-size:1.0rem;"><span>🚌</span><span><strong>Taşıyıcı:</strong> Hemoglobin — oksijen taşır</span></div>
+        </div>
+      </div>
+      <div class="fact-box purple">
+        <span class="fact-icon">🤖</span>
+        <p><strong style="color:#a78bfa">AlphaFold (2020):</strong> Google DeepMind'ın yapay zekası, 50 yıllık protein katlanma problemini çözdü. 200M+ proteinin 3B yapısı tahmin edildi ve <strong style="color:var(--white)">herkese ücretsiz açıldı.</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 7: OMİKS'E GEÇİŞ ──────────── -->
+<div class="slide" data-title="Neden Omiks Teknolojileri?">
+  <div class="slide-label">KÖPRÜ SLAYT</div>
+  <h2 style="text-align:center; margin-bottom:1.5rem;">Tek gen yerine <span class="accent-cyan">hepsini birden</span> ölçebilsek?</h2>
+  <div class="two-col" style="flex:1; align-items:center; gap:3rem;">
+    <div>
+      <div class="card" style="padding:1.5rem; margin-bottom:1rem; border-color:rgba(255,255,255,0.04);">
+        <h3 style="color:var(--muted); margin-bottom:0.75rem;">⏮️ Eski Yöntem (1990'lar)</h3>
+        <p style="font-size:1.05rem; line-height:1.75;">Bilim insanları <strong style="color:var(--white)">tek tek geni</strong> inceliyordu. Bir geni analiz etmek yıllarca sürerdi. Tüm genomu okumak hayal bile edilemezdi.</p>
+        <div style="margin-top:0.75rem; font-family:var(--mono); font-size:0.92rem; color:var(--muted);">Süre: Yıllar &nbsp;·&nbsp; Maliyet: Milyonlar $</div>
+      </div>
+      <div class="card card-cyan" style="padding:1.5rem;">
+        <h3 style="color:var(--cyan); margin-bottom:0.75rem;">⚡ Omiks (Günümüz)</h3>
+        <p style="font-size:1.05rem; line-height:1.75;"><strong style="color:var(--white)">Tüm genleri</strong> aynı anda ölçebiliyoruz. RNA-seq ile bir denemede 20.000+ gen analiz edilebiliyor. Veri taşkını!</p>
+        <div style="margin-top:0.75rem; font-family:var(--mono); font-size:0.92rem; color:var(--cyan);">Süre: Günler &nbsp;·&nbsp; Maliyet: 200–500 $</div>
+      </div>
+    </div>
+    <div>
+      <div style="text-align:center; margin-bottom:1.5rem;">
+        <div style="font-size:3.5rem; margin-bottom:0.75rem;">🌲 → 🌳🌲🌴🎋</div>
+        <p style="font-size:1rem; color:var(--muted);">Eskiden tek ağacı görüyorduk.<br>Şimdi <strong style="color:var(--white)">tüm ormanı</strong> görüyoruz.</p>
+      </div>
+      <div class="fact-box gold">
+        <span class="fact-icon">📖</span>
+        <p><strong style="color:var(--gold)">"Omiks" son eki ne demek?</strong><br><br>
+        <span style="font-family:var(--mono);">Gen<strong style="color:var(--cyan)">om</strong>ics</span> = tüm genler<br>
+        <span style="font-family:var(--mono);">Transcript<strong style="color:var(--cyan)">om</strong>ics</span> = tüm RNA'lar<br>
+        <span style="font-family:var(--mono);">Prote<strong style="color:var(--cyan)">om</strong>ics</span> = tüm proteinler<br><br>
+        "-om" eki bir sistemin <em>tamamını</em> ölçmek demektir.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 8: OMİKS EVRENİ ───────────── -->
+<div class="slide" data-title="Omiks Evreni">
+  <div class="slide-label">OMİKS TEKNOLOJİLERİ</div>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <h2>Omiks Evreni:<br><span class="accent-cyan">6 Boyutlu Hücre</span></h2>
+      <p style="margin:0.5rem 0 1rem;">Her omiks dalı hücrenin farklı bir katmanını ölçer. Bir karta tıkla, detayları gör.</p>
+      <div class="omics-grid" id="omics-grid">
+        <button class="omics-btn card-cyan" data-id="0"><div style="font-size:1.3rem;margin-bottom:0.3rem;">🧬</div><div style="font-weight:700;font-size:0.98rem;color:var(--cyan)">Genomiks</div><div style="font-size:0.88rem;color:var(--muted);font-family:var(--mono)">DNA</div></button>
+        <button class="omics-btn card-purple" data-id="1"><div style="font-size:1.3rem;margin-bottom:0.3rem;">📜</div><div style="font-weight:700;font-size:0.98rem;color:#a78bfa">Transkriptomiks</div><div style="font-size:0.88rem;color:var(--muted);font-family:var(--mono)">mRNA</div></button>
+        <button class="omics-btn card-gold" data-id="2"><div style="font-size:1.3rem;margin-bottom:0.3rem;">⚙️</div><div style="font-weight:700;font-size:0.98rem;color:var(--gold)">Proteomiks</div><div style="font-size:0.88rem;color:var(--muted);font-family:var(--mono)">Protein</div></button>
+        <button class="omics-btn" style="border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.05);" data-id="3"><div style="font-size:1.3rem;margin-bottom:0.3rem;">⚗️</div><div style="font-weight:700;font-size:0.98rem;color:var(--red)">Metabolomiks</div><div style="font-size:0.88rem;color:var(--muted);font-family:var(--mono)">Metabolit</div></button>
+        <button class="omics-btn" style="border-color:rgba(16,185,129,0.2);background:rgba(16,185,129,0.05);" data-id="4"><div style="font-size:1.3rem;margin-bottom:0.3rem;">🔐</div><div style="font-weight:700;font-size:0.98rem;color:#10b981">Epigenomiks</div><div style="font-size:0.88rem;color:var(--muted);font-family:var(--mono)">Metilasyon</div></button>
+        <button class="omics-btn" style="border-color:rgba(139,92,246,0.2);background:rgba(139,92,246,0.05);" data-id="5"><div style="font-size:1.3rem;margin-bottom:0.3rem;">🌍</div><div style="font-weight:700;font-size:0.98rem;color:#8b5cf6">Metagenomiks</div><div style="font-size:0.88rem;color:var(--muted);font-family:var(--mono)">Topluluk DNA</div></button>
+      </div>
+      <div class="omics-detail-box" id="omics-detail">
+        <p style="color:rgba(255,255,255,0.3); font-family:var(--mono); font-size:0.98rem;">↑ Bir dal seç → detaylar burada çıkar</p>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center;">
+      <img src="assets/omics_overview.png" alt="Omiks Evreni" class="full">
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 9: GENOMİKS ───────────────── -->
+<div class="slide" data-title="Genomiks">
+  <div class="slide-label">OMİKS DAL 1</div>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <h2>Genomiks:<br><span class="accent-cyan">DNA'nın Tamamını Okumak</span></h2>
+      <p style="margin:0.75rem 0 1.25rem;">Bir organizmanın tüm DNA dizisini okuma bilimidir. Bunu mümkün kılan teknoloji: <strong style="color:var(--white)">Yeni Nesil Dizileme (NGS)</strong>.</p>
+      <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.25rem;">
+        <div class="card" style="padding:0.9rem;"><span style="font-size:1rem;">🌐</span> <strong>Tüm Genomik Dizileme (WGS):</strong> <span style="font-size:1.0rem; color:var(--muted);">3,2 milyar bazın tamamı okunur. En kapsamlı yöntem.</span></div>
+        <div class="card" style="padding:0.9rem;"><span style="font-size:1rem;">🎯</span> <strong>Ekzom Dizileme (WES):</strong> <span style="font-size:1.0rem; color:var(--muted);">Sadece protein yapan bölgeler (~%1,5). Daha hızlı ve ucuz.</span></div>
+        <div class="card" style="padding:0.9rem;"><span style="font-size:1rem;">🔍</span> <strong>Hedefli Dizileme:</strong> <span style="font-size:1.0rem; color:var(--muted);">Belirli kanser genleri gibi seçili bölgeler analiz edilir.</span></div>
+      </div>
+      <div class="fact-box">
+        <span class="fact-icon">🦠</span>
+        <p><strong style="color:var(--white)">COVID-19 örneği:</strong> Virüsün RNA genomu Ocak 2020'de 48 saatte dizilendi ve tüm dünyayla paylaşıldı. Bu sayede aşılar 10 ayda geliştirildi. Normalde aşı geliştirme 10–15 yıl sürer!</p>
+      </div>
+    </div>
+    <div>
+      <div class="card card-cyan" style="padding:1.5rem; margin-bottom:1rem;">
+        <h3 style="color:var(--cyan); margin-bottom:1rem;">💰 Maliyet Devrimi</h3>
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
+            <span style="font-weight:700;">2001</span>
+            <span style="font-family:var(--mono); color:var(--red); font-size:1rem; font-weight:700;">3 Milyar $</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
+            <span style="font-weight:700;">2007</span>
+            <span style="font-family:var(--mono); color:var(--gold); font-size:1rem; font-weight:700;">10 Milyon $</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
+            <span style="font-weight:700;">2014</span>
+            <span style="font-family:var(--mono); color:var(--cyan); font-size:1rem; font-weight:700;">1.000 $</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:700;">2024</span>
+            <span style="font-family:var(--mono); color:#10b981; font-size:1rem; font-weight:700;">~200 $</span>
+          </div>
+        </div>
+      </div>
+      <div class="fact-box gold">
+        <span class="fact-icon">🚀</span>
+        <p>İnsan Genomu Projesi <strong style="color:var(--gold)">15 yıl ve 3 milyar dolar</strong> harcadı. Bugün aynı işlemi bir makinede <strong style="color:var(--white)">24 saatte, 200 dolara</strong> yapabiliyoruz.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 10: TRANSKRİPTOMİKS ──────── -->
+<div class="slide" data-title="Transkriptomiks ve RNA-seq">
+  <div class="slide-label">OMİKS DAL 2</div>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <h2>Transkriptomiks:<br><span class="accent-cyan">Hücrenin Anlık Fotoğrafı</span></h2>
+      <p style="margin:0.75rem 0 1.25rem;">Bir hücredeki tüm mRNA'ları — yani o anda aktif olan tüm genleri — aynı anda ölçer. Bu yönteme <strong style="color:var(--white)">RNA-seq</strong> denir.</p>
+
+      <div class="card" style="padding:1.25rem; margin-bottom:1rem; border-color:rgba(124,58,237,0.2); background:rgba(124,58,237,0.05);">
+        <h3 style="color:#a78bfa; margin-bottom:0.75rem;">RNA-seq Ne Sorar?</h3>
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <div style="display:flex; gap:0.5rem; font-size:1.05rem;"><span>❓</span> Kanser hücresinde hangi genler fazla aktif?</div>
+          <div style="display:flex; gap:0.5rem; font-size:1.05rem;"><span>❓</span> İlaç verilince hangi genler değişiyor?</div>
+          <div style="display:flex; gap:0.5rem; font-size:1.05rem;"><span>❓</span> Stres altında hücre nasıl tepki veriyor?</div>
+          <div style="display:flex; gap:0.5rem; font-size:1.05rem;"><span>❓</span> İki doku neden farklı çalışıyor?</div>
+        </div>
+      </div>
+
+      <div class="fact-box">
+        <span class="fact-icon">📸</span>
+        <p>RNA-seq sonucu her geni bir <strong style="color:var(--white)">sayı</strong> ile temsil eder: o hücrede o gende kaç tane mRNA molekülü olduğunu gösterir. Bu sayılara <em>read count (okuma sayısı)</em> denir.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card card-cyan" style="padding:1.25rem; margin-bottom:0.75rem;">
+        <h3 style="color:var(--cyan); margin-bottom:0.75rem;">📊 Örnek Veri</h3>
+        <div style="font-family:var(--mono); font-size:0.95rem;">
+          <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:0.3rem 1rem; margin-bottom:0.5rem;">
+            <span style="color:var(--muted);">Gen</span>
+            <span style="color:var(--red);">Kanser</span>
+            <span style="color:var(--muted);">Normal</span>
+          </div>
+          <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:0.3rem 1rem;">
+            <span>MYC</span><span style="color:var(--red);font-weight:700;">12.450</span><span>420</span>
+            <span>TP53</span><span style="color:var(--red);">89</span><span style="color:var(--cyan);font-weight:700;">1.820</span>
+            <span>BRCA1</span><span style="color:var(--red);">210</span><span style="color:var(--cyan);font-weight:700;">1.550</span>
+            <span>VEGFA</span><span style="color:var(--red);font-weight:700;">8.300</span><span>380</span>
+          </div>
+        </div>
+        <p style="font-size:0.95rem; color:var(--muted); margin-top:0.75rem;">↑ MYC kanserde ~30× fazla aktif. Bu kanser için önemli bir ipucu!</p>
+      </div>
+      <div class="fact-box purple">
+        <span class="fact-icon">🤯</span>
+        <p>Tek bir RNA-seq deneyi <strong style="color:var(--white)">20.000'den fazla genin</strong> aktivitesini aynı anda ölçer. Bu, tüm genomunuzu tek seferinde "okumak" gibidir!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 11: RNA-SEQ SÜRECİ ────────── -->
+<div class="slide" data-title="RNA-seq Süreci">
+  <div class="slide-label">YÖNTEM</div>
+  <div class="two-col" style="flex:1; align-items:start;">
+    <div>
+      <h2>RNA-seq:<br><span class="accent-cyan">Adım Adım Süreç</span></h2>
+      <p style="margin:0.5rem 0 1rem; font-size:1.05rem;">Her adıma tıkla — ne yapıldığını öğren.</p>
+      <div class="rnaseq-acc" id="rnaseq-acc"></div>
+    </div>
+    <img src="assets/rnaseq_workflow.png" alt="RNA-seq İş Akışı" class="full">
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 12: HEATMAP ───────────────── -->
+<div class="slide" data-title="Gen İfade Haritası">
+  <div class="slide-label">VERİ YORUMLAMA</div>
+  <h2>Gen İfade Haritası: <span class="accent-cyan">Veriden Anlama</span></h2>
+
+  <div class="fact-box" style="margin:0.6rem 0 1rem;">
+    <span class="fact-icon">📖</span>
+    <p><strong style="color:var(--white)">Isı haritası (heatmap) nasıl okunur?</strong> Her satır bir gen, her sütun bir örnek (hasta/doku). Renk, o genin o örnekteki aktivitesini gösterir: <span style="color:#00d4aa">■ Mavi-yeşil = Düşük ifade</span> · <span style="color:#fffbf0">■ Sarı = Orta</span> · <span style="color:#c0392b">■ Kırmızı = Yüksek ifade.</span> <strong style="color:var(--white)">K1-K3 = Kanser dokusu, N1-N3 = Normal doku.</strong> Hücrelerin üzerine gelerek değerleri gör!</p>
+  </div>
+
+  <div class="heatmap-layout">
+    <div>
+      <div class="hm-col-headers" id="hm-col-hdrs"></div>
+      <div id="hm-rows"></div>
+      <div style="margin-top:1rem;">
+        <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:0.88rem; color:var(--muted); margin-bottom:0.3rem;">
+          <span>EŞIK DEĞERİ</span><span id="thr-val" style="color:var(--cyan)">0.0</span>
+        </div>
+        <input type="range" min="-3" max="3" step="0.1" value="0" id="thr-slider" style="width:100%; accent-color:var(--cyan);">
+        <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:0.65rem; color:rgba(255,255,255,0.2); margin-top:0.2rem;"><span>Düşük</span><span>Yüksek</span></div>
+      </div>
+    </div>
+    <div class="heatmap-panel">
+      <div style="font-family:var(--mono); font-size:0.86rem; color:var(--muted); margin-bottom:0.5rem;">SEÇİLİ NOKTA</div>
+      <div id="hm-hover" style="min-height:80px; color:rgba(255,255,255,0.3); font-size:0.98rem; font-family:var(--mono);">Hücrenin üzerine gel…</div>
+      <div class="hm-legend" style="margin-top:0.75rem;"><div class="hm-legend-bar"></div></div>
+      <div class="hm-legend-labels"><span>−3</span><span>0</span><span>+3</span></div>
+      <div style="margin-top:0.75rem; border-top:1px solid var(--border); padding-top:0.75rem;">
+        <div style="font-family:var(--mono); font-size:0.86rem; color:var(--muted); margin-bottom:0.4rem;">EŞIĞI GEÇEN GENLER</div>
+        <div id="thr-genes" style="min-height:30px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 13: scRNA-seq ─────────────── -->
+<div class="slide" data-title="Tek Hücre RNA-seq">
+  <div class="slide-label">OMİKS DAL 2B — GELİŞMİŞ</div>
+  <div class="two-col" style="flex:1; align-items:center;">
+    <div>
+      <h2>Tek Hücre RNA-seq:<br><span class="accent-cyan">Her Hücre Ayrı Bir Dünya</span></h2>
+      <p style="margin:0.75rem 0 1.25rem;">Normal RNA-seq binlerce hücrenin <em>ortalamasını</em> verir. Tek hücre RNA-seq (scRNA-seq) ise <strong style="color:var(--white)">her bir hücreyi ayrı ayrı</strong> analiz eder.</p>
+
+      <div class="fact-box" style="margin-bottom:0.75rem;">
+        <span class="fact-icon">🎓</span>
+        <p><strong style="color:var(--white)">Sınıf Analojisi:</strong> Normal RNA-seq = tüm sınıfın not ortalaması (70). scRNA-seq = her öğrencinin notu (40, 55, 70, 85, 95…). Ortalama sizi yanıltabilir!</p>
+      </div>
+
+      <div class="card card-cyan" style="padding:1.25rem; margin-bottom:0.75rem;">
+        <h3 style="color:var(--cyan); margin-bottom:0.5rem;">UMAP Nedir?</h3>
+        <p style="font-size:1.0rem; line-height:1.7;">Binlerce genin verisini 2 boyuta sıkıştırır. Benzer genler kullanan hücreler birbirine yakın noktalarda kümelenir. Her küme = farklı bir hücre tipi.</p>
+      </div>
+
+      <div class="card card-purple" style="padding:1.25rem;">
+        <h3 style="color:#a78bfa; margin-bottom:0.5rem;">Neden Önemli?</h3>
+        <p style="font-size:1.0rem; line-height:1.7;">Aynı tümör içinde ilaç dirençli ve duyarlı hücreler <strong style="color:var(--white)">ayrılabilir</strong>. Kişiselleştirilmiş tedavi tasarımına kapı açar. İnsan Hücresi Atlası: 37 trilyon hücrenin tamamı haritalanıyor!</p>
+      </div>
+    </div>
+    <img src="assets/scrna_umap.png" alt="scRNA-seq UMAP" class="full">
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 14: PROTEOMİKS ────────────── -->
+<div class="slide" data-title="Proteomiks ve Metabolomiks">
+  <div class="slide-label">OMİKS DAL 3 & 4</div>
+  <div class="two-col" style="flex:1;">
+    <div>
+      <h2>Proteomiks:<br><span class="accent-gold">İşlev Yapan Moleküller</span></h2>
+      <p style="margin:0.75rem 0 1rem;">mRNA her zaman proteine dönüşmez. Gerçek işlevi yapan proteinleri ölçmek için <strong style="color:var(--white)">Kütle Spektrometresi</strong> kullanılır.</p>
+      <div class="card card-gold" style="padding:1.25rem; margin-bottom:0.75rem;">
+        <h3 style="color:var(--gold); margin-bottom:0.5rem;">Kütle Spektrometresi Nasıl Çalışır?</h3>
+        <p style="font-size:1.0rem; line-height:1.7;">Proteinler küçük parçalara (peptit) ayrılır. Her peptit kütlesine göre ayrılır ve tanımlanır. Binlerce protein <strong style="color:var(--white)">aynı anda</strong> ölçülebilir.</p>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div style="font-size:1.0rem; font-weight:700; margin-bottom:0.4rem;">Klinik Örnekler:</div>
+        <div style="display:flex; flex-direction:column; gap:0.3rem; font-size:0.98rem; color:var(--muted);">
+          <span>🩸 PSA → Prostat kanseri belirteçi</span>
+          <span>❤️ Troponin → Kalp krizi tespiti</span>
+          <span>🧬 HER2 → Meme kanseri tedavisi</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h2>Metabolomiks:<br><span class="accent-cyan">Gerçek Zamanlı Metabolizma</span></h2>
+      <p style="margin:0.75rem 0 1rem;">Hücrenin içindeki küçük molekülleri (şeker, yağ asidi, vitamin, amino asit) ölçer. Hücrenin <strong style="color:var(--white)">anlık metabolik durumunu</strong> yansıtır.</p>
+      <div class="card" style="padding:1.25rem; margin-bottom:0.75rem; border-color:rgba(239,68,68,0.2); background:rgba(239,68,68,0.05);">
+        <h3 style="color:var(--red); margin-bottom:0.5rem;">Neden Önemli?</h3>
+        <p style="font-size:1.0rem; line-height:1.7;">DNA değişmeden de metabolizma bozulabilir. Diyabet, obezite, Alzheimer gibi hastalıklar metabolom değişiklikleriyle erken tespit edilebilir.</p>
+      </div>
+      <div class="fact-box">
+        <span class="fact-icon">🧪</span>
+        <p>İdrar metabolom analizi ile böbrek hastalıkları belirti göstermeden <strong style="color:var(--white)">yıllarca önce</strong> tespit edilebilir. Kan metabolomu kalp hastalığı riskini öngörebilir.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 15: BÜTÜNLEŞİK OMİKS ─────── -->
+<div class="slide" data-title="Bütünleşik Omiks">
+  <div class="slide-label">BÜYÜK RESİM</div>
+  <h2 style="text-align:center; margin-bottom:1.5rem;">Tüm Katmanları<br><span class="accent-cyan">Birleştirince Ne Olur?</span></h2>
+  <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:0.5rem; align-items:center; margin-bottom:1.5rem;">
+    <div class="card card-cyan" style="text-align:center; padding:1rem;"><div style="font-size:1.5rem;">🧬</div><div style="font-size:0.95rem; font-weight:700; color:var(--cyan); margin-top:0.3rem;">Genomiks</div><div style="font-size:0.88rem; color:var(--muted);">Varyantlar</div></div>
+    <div style="text-align:center; font-size:1.5rem; color:var(--border)">→</div>
+    <div class="card card-purple" style="text-align:center; padding:1rem;"><div style="font-size:1.5rem;">📜</div><div style="font-size:0.95rem; font-weight:700; color:#a78bfa; margin-top:0.3rem;">Transkriptomiks</div><div style="font-size:0.88rem; color:var(--muted);">Aktif genler</div></div>
+    <div style="text-align:center; font-size:1.5rem; color:var(--border)">→</div>
+    <div class="card card-gold" style="text-align:center; padding:1rem;"><div style="font-size:1.5rem;">⚙️</div><div style="font-size:0.95rem; font-weight:700; color:var(--gold); margin-top:0.3rem;">Proteomiks</div><div style="font-size:0.88rem; color:var(--muted);">İşlev</div></div>
+  </div>
+  <div class="two-col">
+    <div class="fact-box" style="flex-direction:column;">
+      <div style="font-size:1.8rem; margin-bottom:0.5rem; text-align:center;">🔬 + 🤖</div>
+      <p style="text-align:center;"><strong style="color:var(--white)">Yapay Zeka + Çok-Omiks</strong><br><br>Tüm katmanlar birleştirilince ve makine öğrenmesi uygulanınca: hastalığın tam resmi görünür, tedavi hedefleri bulunur, hasta grupları ayrıştırılır.</p>
+    </div>
+    <div class="card card-cyan" style="padding:1.5rem;">
+      <h3 style="color:var(--cyan); margin-bottom:0.75rem;">🎯 Gerçek Dünya Örneği</h3>
+      <p style="font-size:1.05rem; line-height:1.8;">Bir kanser hastasının genomu (mutasyonlar) + transkriptomu (hangi genler aktif) + proteomunu (işlevsel proteinler) birleştirince:<br><br>
+      <strong style="color:var(--white)">→ En etkili kemoterapi ilaçları seçilebilir<br>
+      → Direnç gelişimi önceden tahmin edilebilir<br>
+      → Kişiye özel tedavi planlanabilir</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── SLAYT 16: TARİHÇE & ÖZET ────────── -->
+<div class="slide" data-title="Tarihçe ve Özet">
+  <div class="slide-label">KAPANIŞ</div>
+  <div class="tl-wrap" style="flex:1;">
+    <div>
+      <h2 style="margin-bottom:1rem;">Devrim <span class="accent-cyan">1953'ten Bugüne</span></h2>
+      <div class="tl-list" id="tl-list"></div>
+    </div>
+    <div>
+      <div class="tl-panel" id="tl-panel">
+        <p style="color:rgba(255,255,255,0.3); font-family:var(--mono); font-size:0.98rem;">← Bir olayı seç</p>
+      </div>
+      <div class="fact-box gold" style="margin-top:1rem;">
+        <span class="fact-icon">🚀</span>
+        <p><strong style="color:var(--gold)">Bugün öğrendikleriniz:</strong><br>
+        DNA → RNA → Protein · Merkezi Dogma<br>
+        Genomiks · Transkriptomiks · RNA-seq<br>
+        Proteomiks · Metabolomiks · Epigenomiks<br><br>
+        <strong style="color:var(--white)">Sıradaki ders: Hücre Fabrikası →</strong> Metabolik ağlar ve FBA modelleri</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /slides-wrap -->
+
+<!-- ══ BOTTOMBAR ════════════════════════════════════════════ -->
+<div class="bottombar">
+  <button class="nav-btn" id="prev-btn" disabled>← Önceki</button>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:6.25%"></div></div>
+  <span class="key-hint">← →</span>
+  <button class="nav-btn next-btn" id="next-btn">Sonraki →</button>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════
+   SLAYT MOTORU
+════════════════════════════════════════════════════ */
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let cur = 0;
+
+function goTo(n, dir = 1) {
+  if (n < 0 || n >= total) return;
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add(dir > 0 ? 'exit-left' : '');
+  setTimeout(() => slides[cur === n ? n : cur].classList.remove('exit-left'), 400);
+  cur = n;
+  slides[cur].classList.add('active');
+  slides[cur].classList.remove('exit-left');
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById('counter').textContent = `${cur+1} / ${total}`;
+  document.getElementById('slide-title-bar').textContent = slides[cur].dataset.title || '';
+  document.getElementById('prev-btn').disabled = cur === 0;
+  document.getElementById('next-btn').disabled = cur === total - 1;
+  document.getElementById('next-btn').textContent = cur === total - 1 ? '✓ Tamamlandı' : 'Sonraki →';
+  document.getElementById('progress-fill').style.width = ((cur + 1) / total * 100) + '%';
+  // dots
+  const dots = document.querySelectorAll('.dot');
+  dots.forEach((d, i) => {
+    d.classList.remove('active', 'done');
+    if (i === cur) d.classList.add('active');
+    else if (i < cur) d.classList.add('done');
+  });
+}
+
+// Dots oluştur
+const dotsEl = document.getElementById('dots');
+for (let i = 0; i < total; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.addEventListener('click', () => goTo(i, i > cur ? 1 : -1));
+  dotsEl.appendChild(d);
+}
+
+document.getElementById('prev-btn').addEventListener('click', () => goTo(cur - 1, -1));
+document.getElementById('next-btn').addEventListener('click', () => goTo(cur + 1));
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(cur + 1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(cur - 1, -1); }
+});
+
+/* Touch/swipe */
+let tx = 0;
+document.addEventListener('touchstart', e => tx = e.touches[0].clientX, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) dx < 0 ? goTo(cur + 1) : goTo(cur - 1, -1);
+}, { passive: true });
+
+/* ════════════════════════════════════════════════════
+   SLAYT 4: Merkezi Dogma tıklama
+════════════════════════════════════════════════════ */
+const dogmaData = {
+  replikasyon: {
+    title: 'Replikasyon: DNA Kendini Kopyalıyor',
+    color: '#00d4aa',
+    body: 'Her hücre bölünmesinden önce DNA\'nın tamamı kopyalanır. Enzim: <strong style="color:#00d4aa">DNA Polimeraz</strong>. Hata oranı: 10 milyarda yalnızca 1. Bu kopyalama hatalarına <em>mutasyon</em> denir ve kanser oluşumunda rol oynar.',
+    fact: 'Saniyede 50 nükleotid kopyalanır. Ama 50.000+ noktada aynı anda çalışır — bu yüzden sadece 6-8 saatte tamamlanır!'
+  },
+  transkripsiyon: {
+    title: 'Transkripsiyon: Genin Okunması',
+    color: '#a78bfa',
+    body: 'DNA\'nın ilgili bölgesi, <strong style="color:#a78bfa">RNA Polimeraz</strong> enzimi tarafından okunur ve mRNA sentezlenir. Bu işlem hücrenin <em>çekirdeğinde</em> gerçekleşir. Her gen yalnızca gerektiğinde "açılır".',
+    fact: 'Kanser hücrelerinde MYC geni normalin 30 katı oranında "açık" kalabilir. Bu transkripsiyon düzeni bozukluğu tümör büyümesini tetikler.'
+  },
+  translasyon: {
+    title: 'Translasyon: Protein Fabrikası',
+    color: '#f59e0b',
+    body: '<strong style="color:#f59e0b">Ribozom</strong> adlı organel, mRNA\'yı okuyarak amino asitleri zincir halinde birleştirir. 3 baz = 1 kodon = 1 amino asit. Sonuçta işlevsel bir protein katlanır.',
+    fact: 'Bir ribozom saniyede 15-20 amino asit ekler. Hücre her saniye 2000\'den fazla protein üretir. Üstelik hata oranı son derece düşüktür!'
+  }
+};
+
+document.querySelectorAll('.dogma-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.dogma-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const d = dogmaData[btn.dataset.key];
+    document.getElementById('dogma-detail').innerHTML = `
+      <div class="card" style="padding:1.1rem; border-color:${d.color}33; background:${d.color}08;">
+        <h3 style="color:${d.color}; margin-bottom:0.5rem;">${d.title}</h3>
+        <p style="font-size:1.0rem; margin-bottom:0.6rem;">${d.body}</p>
+        <div style="background:${d.color}10; border-radius:8px; padding:0.6rem 0.75rem; font-size:0.95rem; border-left:3px solid ${d.color};">💡 ${d.fact}</div>
+      </div>`;
+  });
+});
+
+/* ════════════════════════════════════════════════════
+   SLAYT 8: Omiks kartları
+════════════════════════════════════════════════════ */
+const omicsData = [
+  { name:'Genomiks', color:'#00d4aa', mol:'DNA', desc:'Bir organizmanın tüm DNA dizisini okur. İnsan genomu = 3,2 milyar baz çifti, ~25.000 gen. Tüm mutasyonları, varyantları tespit eder.', ex:'COVID-19 virüsünün genomu 48 saatte dizilendi. Kanser mutasyonları tespit edilip tedavi planlanır.' },
+  { name:'Transkriptomiks', color:'#a78bfa', mol:'mRNA', desc:'Hücredeki tüm aktif genleri (mRNA) ölçer. Hangi genler ne kadar aktif? RNA-seq bu soruyu yanıtlar — 20.000+ gen aynı anda.', ex:'Kanser hücrelerinde MYC geni 30× fazla aktif. Bu bilgiyle hedefe yönelik ilaçlar geliştirildi.' },
+  { name:'Proteomiks', color:'#f59e0b', mol:'Protein', desc:'Kütle spektrometri ile hücredeki binlerce proteini tanımlar ve ölçer. mRNA her zaman proteine dönüşmez; gerçek işlevi yapan proteini ölçmek şarttır.', ex:'PSA (prostat kanseri), troponin (kalp krizi) gibi biyobelirteçler proteomiks ile keşfedildi.' },
+  { name:'Metabolomiks', color:'#ef4444', mol:'Metabolit', desc:'Şeker, yağ asidi, amino asit gibi küçük molekülleri ölçer. Hücrenin "gerçek zamanlı" metabolik aktivitesini yansıtır.', ex:'İdrar metabolom analizi böbrek hastalıklarını belirti çıkmadan yıllarca önce tespit edebilir.' },
+  { name:'Epigenomiks', color:'#10b981', mol:'Metilasyon', desc:'DNA\'yı değiştirmeden gen ifadesini düzenleyen kimyasal işaretleri inceler: DNA metilasyonu, histon modifikasyonları.', ex:'Tek yumurta ikizleri aynı DNA\'ya sahip ama farklı hastalıklara yakalanabilir — epigenetik fark nedeniyle!' },
+  { name:'Metagenomiks', color:'#8b5cf6', mol:'Topluluk DNA', desc:'Bir örnekteki (bağırsak, toprak, deniz suyu) tüm organizmaların DNA\'sını kültür yapmadan okur.', ex:'Bağırsak mikrobiyomundaki değişimler obezite, depresyon ve bağışıklık hastalıklarıyla ilişkilendirildi.' },
+];
+
+document.querySelectorAll('.omics-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.omics-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const o = omicsData[parseInt(btn.dataset.id)];
+    const box = document.getElementById('omics-detail');
+    box.style.borderColor = o.color + '33';
+    box.style.background = o.color + '08';
+    box.innerHTML = `
+      <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.6rem;">
+        <span style="font-family:var(--mono); font-size:0.88rem; color:${o.color}; background:${o.color}15; border:1px solid ${o.color}33; border-radius:4px; padding:0.1rem 0.4rem;">${o.mol}</span>
+        <strong style="color:${o.color}">${o.name}</strong>
+      </div>
+      <p style="font-size:0.84rem; margin-bottom:0.5rem;">${o.desc}</p>
+      <div style="padding:0.5rem 0.75rem; background:${o.color}10; border-left:3px solid ${o.color}; border-radius:4px; font-size:0.95rem;"><strong style="color:${o.color}">Örnek:</strong> ${o.ex}</div>`;
+  });
+});
+
+/* ════════════════════════════════════════════════════
+   SLAYT 11: RNA-seq accordion
+════════════════════════════════════════════════════ */
+const rnaseqSteps = [
+  { n:1, t:'Hücre Lizisi', time:'15–30 dk', desc:'Hücreler kimyasal ya da mekanik yolla parçalanır. İçindeki RNA, DNA ve proteinler serbest kalır. RNA çok hassastır — işlem soğukta yapılmalıdır.', tech:'Kullanılan kimyasal: TRIzol. Oda sıcaklığı RNA\'yı 30 dk içinde bozar!' },
+  { n:2, t:'RNA İzolasyonu', time:'1–2 saat', desc:'Karışımdan sadece mRNA ayrıştırılır. DNA ve proteinler uzaklaştırılır. Polyadenilat (polyA) kuyruğuna sahip mRNA\'lar seçilir.', tech:'Yöntem: Oligo(dT) boncuklar. mRNA\'nın polyA kuyruğu bu boncuklara yapışır.' },
+  { n:3, t:'cDNA Sentezi', time:'30–60 dk', desc:'RNA tek zincirlidir ve kararsızdır. Ters transkriptaz enzimi RNA\'yı daha kararlı DNA\'ya (cDNA) dönüştürür. Bu adım RNA\'yı "korur".', tech:'Enzim: Reverse Transcriptase. Primer: oligo(dT) veya rastgele hekzamerler.' },
+  { n:4, t:'Kütüphane Hazırlama', time:'4–8 saat', desc:'cDNA parçalara ayrılır ve uçlarına özel adaptörler eklenir. Bu adaptörler dizileme makinesinin tutunma noktalarıdır.', tech:'Parça boyutu: 150–400 baz çifti. Kalite kontrolü: Bioanalyzer ile kontrol edilir.' },
+  { n:5, t:'Yeni Nesil Dizileme (NGS)', time:'24–48 saat', desc:'Illumina teknolojisi: DNA parçaları cam yüzeye (flow cell) bağlanır, kopyalanır ve lazer ile okunur. Her baz, renkli ışık sinyaliyle belirlenir.', tech:'Illumina NovaSeq: 2×150 baz, 6 Tbaz/çalışma, milyarlarca okuma.' },
+  { n:6, t:'Biyoinformatik Analiz', time:'2–24 saat (bilgisayar)', desc:'Ham okumalar referans genoma hizalanır. Her gen için kaç okuma düştüğü sayılır. İstatistiksel analiz ile hangi genler farklı eksprese edilmiş bulunur.', tech:'Araçlar: STAR (hizalama), DESeq2 (analiz). Çıktı: Gen ifade matrisi.' },
+];
+
+const accEl = document.getElementById('rnaseq-acc');
+rnaseqSteps.forEach(s => {
+  const item = document.createElement('div');
+  item.className = 'acc-item';
+  item.innerHTML = `
+    <div class="acc-header">
+      <div class="acc-num">${s.n}</div>
+      <div class="acc-title">${s.t}</div>
+      <div class="acc-time">${s.time}</div>
+      <div class="acc-arrow">▶</div>
+    </div>
+    <div class="acc-body">
+      <p>${s.desc}</p>
+      <div class="tech">// ${s.tech}</div>
+    </div>`;
+  item.querySelector('.acc-header').addEventListener('click', () => {
+    const open = item.classList.contains('open');
+    document.querySelectorAll('.acc-item').forEach(i => i.classList.remove('open'));
+    if (!open) item.classList.add('open');
+  });
+  accEl.appendChild(item);
+});
+
+/* ════════════════════════════════════════════════════
+   SLAYT 12: Heatmap (sütun başlıkları düzeltildi)
+════════════════════════════════════════════════════ */
+const genes = ['TP53','MYC','BRCA1','VEGFA','EGFR','HIF1A','CDK4','BCL2','KRAS','PTEN'];
+const samples = ['K1','K2','K3','N1','N2','N3'];
+const heatData = {
+  TP53: [-2.1,-1.8,-2.4, 0.3, 0.1, 0.2],
+  MYC:  [ 2.8, 3.1, 2.6,-0.2,-0.1, 0.0],
+  BRCA1:[-1.5,-1.9,-1.3, 0.8, 0.7, 0.9],
+  VEGFA:[ 2.2, 2.5, 1.9, 0.1,-0.1, 0.2],
+  EGFR: [ 1.8, 2.0, 1.5,-0.3,-0.2,-0.1],
+  HIF1A:[ 1.5, 1.2, 1.7, 0.1, 0.0, 0.2],
+  CDK4: [ 2.3, 1.9, 2.1,-0.1, 0.0,-0.2],
+  BCL2: [ 1.7, 1.4, 2.0, 0.1, 0.0, 0.1],
+  KRAS: [ 2.5, 2.8, 2.2, 0.0,-0.1, 0.0],
+  PTEN: [-2.0,-2.3,-1.8, 0.5, 0.4, 0.6]
+};
+
+function heatColor(v) {
+  const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
+  function lerp(a,b,t) { return a+(b-a)*clamp(t,0,1); }
+  function hexToRgb(h) { const n=parseInt(h.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+  function rgbToHex(r,g,b) { return '#'+[r,g,b].map(x=>Math.round(x).toString(16).padStart(2,'0')).join(''); }
+  const stops=[['#1e3a5f',-3],['#00d4aa',-1],['#fffbf0',0],['#ff6b35',1],['#c0392b',3]];
+  for(let i=0;i<stops.length-1;i++){
+    if(v<=stops[i+1][1]){
+      const t=(v-stops[i][1])/(stops[i+1][1]-stops[i][1]);
+      const a=hexToRgb(stops[i][0]),b=hexToRgb(stops[i+1][0]);
+      return rgbToHex(lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t));
+    }
+  }
+  return '#c0392b';
+}
+
+// Sütun başlıkları — gene label genişliğiyle hizalı
+const colHdrEl = document.getElementById('hm-col-hdrs');
+// Gene label = 72px, gap = 3px, her hücre = 44px
+// Padding-left = 72+6 = 78px ile eşleşiyor
+samples.forEach((s,i) => {
+  const d = document.createElement('div');
+  d.className = 'hm-col-hdr';
+  d.style.color = i < 3 ? '#ef4444' : 'rgba(255,255,255,0.5)';
+  d.style.fontWeight = i < 3 ? '700' : '400';
+  d.textContent = s;
+  colHdrEl.appendChild(d);
+});
+
+const hmRows = document.getElementById('hm-rows');
+genes.forEach(gene => {
+  const row = document.createElement('div');
+  row.className = 'hm-row';
+  const lbl = document.createElement('div');
+  lbl.className = 'hm-gene';
+  lbl.textContent = gene;
+  row.appendChild(lbl);
+  samples.forEach((s,si) => {
+    const v = heatData[gene][si];
+    const cell = document.createElement('div');
+    cell.className = 'hm-cell';
+    cell.style.background = heatColor(v);
+    cell.addEventListener('mouseenter', () => {
+      document.getElementById('hm-hover').innerHTML = `
+        <div style="color:var(--cyan); font-family:var(--mono); margin-bottom:0.3rem;">${gene}</div>
+        <div style="font-size:0.95rem; margin-bottom:0.25rem;">Örnek: <strong>${si<3?'🔴 Kanser':'⚪ Normal'} (${s})</strong></div>
+        <div class="hm-val" style="color:${v>0?'#ff6b35':'#00d4aa'}">${v>0?'+':''}${v.toFixed(1)}</div>
+        <div style="font-size:0.9rem; color:var(--muted);">${Math.abs(v)>1.5?'⚠️ Anlamlı fark':'→ Normal aralık'}</div>`;
+    });
+    row.appendChild(cell);
+  });
+  hmRows.appendChild(row);
+});
+
+const slider = document.getElementById('thr-slider');
+slider.addEventListener('input', () => {
+  const thr = parseFloat(slider.value);
+  document.getElementById('thr-val').textContent = thr.toFixed(1);
+  const hits = [];
+  genes.forEach(g => {
+    const max = Math.max(...heatData[g]), min = Math.min(...heatData[g]);
+    if (thr >= 0 && max >= thr) hits.push({ g, v: max, dir:'↑' });
+    if (thr < 0 && min <= thr) hits.push({ g, v: min, dir:'↓' });
+  });
+  const el = document.getElementById('thr-genes');
+  el.innerHTML = hits.length > 0
+    ? hits.map(h => `<span class="gene-chip" style="background:${h.dir==='↑'?'rgba(255,107,53,0.15)':'rgba(0,212,170,0.12)'}; color:${h.dir==='↑'?'#ff6b35':'#00d4aa'}">${h.dir} ${h.g}</span>`).join('')
+    : '<span style="color:rgba(255,255,255,0.25); font-size:0.92rem; font-family:var(--mono);">Yok</span>';
+});
+slider.dispatchEvent(new Event('input'));
+
+/* ════════════════════════════════════════════════════
+   SLAYT 16: Zaman çizelgesi
+════════════════════════════════════════════════════ */
+const tlData = [
+  { y:'1953', t:'Watson & Crick: DNA Çift Sarmalı', s:'Modern biyolojinin başlangıcı', d:'Rosalind Franklin\'in X-ışını kristalografisi verilerine dayanarak DNA\'nın çift sarmal yapısı açıklandı. Tüm modern biyolojinin temeli.', future:false },
+  { y:'1977', t:'Sanger Dizileme', s:'İlk DNA okuma yöntemi', d:'Frederick Sanger, DNA dizileme tekniğini geliştirdi. 1980 Nobel Kimya Ödülü. İlk DNA dizileme yöntemi — tek tek bazları okuyabiliyorduk.', future:false },
+  { y:'1990', t:'İnsan Genom Projesi Başladı', s:'15 ülke, 3 milyar dolar', d:'İnsan genomundaki tüm 3,2 milyar bazı okuma projesi. 15 ülkeden 2000+ bilim insanı katıldı. 15 yıl sürdü.', future:false },
+  { y:'2001', t:'İnsan Genomu Tamamlandı', s:'Şaşırtıcı bulgular!', d:'Sadece ~25.000 gen var (beklenenden çok az!). Genomumuzun %98\'ini şempanzelerle paylaşıyoruz. "Önemsiz" sanılan DNA\'nın aslında çok işlevi var.', future:false },
+  { y:'2006', t:'RNA-seq Geliştirildi', s:'Tüm transkriptom analizi', d:'Yeni Nesil Dizileme (NGS) teknolojisi ile RNA-seq mümkün oldu. Artık tek geni değil, 20.000+ geni aynı anda ölçebiliyoruz.', future:false },
+  { y:'2009', t:'Tek Hücre RNA-seq', s:'Her hücre ayrı analiz', d:'Tang ve ark. ilk scRNA-seq protokolünü yayımladı. Bugün tek seferde 1 milyon hücreyi analiz etmek mümkün.', future:false },
+  { y:'2012', t:'CRISPR-Cas9 Devrimi', s:'Gen düzenleme demokratikleşti', d:'Jennifer Doudna ve Emmanuelle Charpentier CRISPR\'i gen düzenleme aracına dönüştürdü. 2020 Nobel Kimya Ödülü. Herhangi bir gen istenen şekilde düzenlenebilir.', future:false },
+  { y:'2020', t:'AlphaFold: Protein Katlanma', s:'50 yıllık problem çözüldü', d:'Google DeepMind\'ın AlphaFold2 modeli 200M+ proteinin 3B yapısını tahmin etti. Tüm veriler herkese ücretsiz açıldı. 2024 Nobel Kimya ödülüne layık görüldü.', future:false },
+  { y:'2025+', t:'Çok-Omiks + Yapay Zeka', s:'Tüm boyutlar birleşiyor', d:'Tek hücre çözünürlüğünde genomiks, transkriptomiks, proteomiks ve metabolomiks aynı anda ölçülüyor. Yapay zeka ile hasta bazlı tedavi planlaması.', future:true },
+];
+
+const tlList = document.getElementById('tl-list');
+const tlPanel = document.getElementById('tl-panel');
+tlData.forEach((ev, i) => {
+  const item = document.createElement('div');
+  item.className = 'tl-item' + (ev.future ? ' future' : '');
+  item.innerHTML = `<div class="tl-dot"></div><div><div class="tl-year">${ev.future ? '★ ' : ''}${ev.y}</div><div class="tl-title">${ev.t}</div><div class="tl-short">${ev.s}</div></div>`;
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.tl-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    tlPanel.innerHTML = `
+      <span class="tag ${ev.future?'tag-gold':'tag-cyan'}" style="margin-bottom:0.75rem; display:inline-block;">${ev.future?'★ GELECEK VİZYONU':'TARİHSEL DÖNÜM NOKTASI'}</span>
+      <div style="font-family:var(--mono); font-size:1.2rem; color:${ev.future?'var(--gold)':'var(--cyan)'}; margin-bottom:0.4rem;">${ev.y}</div>
+      <h3 style="margin-bottom:0.75rem;">${ev.t}</h3>
+      <p style="font-size:1.05rem; line-height:1.75;">${ev.d}</p>`;
+  });
+  tlList.appendChild(item);
+});
+tlList.querySelector('.tl-item').click();
+
+/* ══════════════════════════════════════════════════════
+   GLOSSARY ENGINE
+══════════════════════════════════════════════════════ */
+const GLOSSARY = {
+  'dna': { term: 'DNA', def: 'Deoksiribünükleik Asit. Hücrenin "genetiğ belgesi". A, T, G, C olmak üzerc dört bazdan oluşan çift sarmal bir molekül. Tüm proteinlerin üretim planını içerir.' },
+  'rna': { term: 'RNA', def: 'Ribünükleik Asit. DNA\'daki bilgiyi ribozomlara taşıyan molekül. mRNA, tRNA, rRNA olmak üzere farklı türleri vardır. DNA\'ya benzer ama tek zincirlidir.' },
+  'mrna': { term: 'mRNA', def: 'Messenger RNA (Haberci RNA). DNA\'dan okunan genetik bilgiyi ribozoma taşır. Ribozom bu şifreden protein üretir. COVID-19 aşıları mRNA teknolojisi kullanır.' },
+  'protein': { term: 'Protein', def: 'Amino asitlerden oluşan ve hüctaki tüm işlemleri yüruten makromolekller. Enzimler, yapısal proteinler, hormonlar... Hücrenin gerçek "işçileri".' },
+  'gen': { term: 'Gen', def: 'DNA\'nın belirli bir protein için kodlayan bölümü. İnsan genomunda yaklaşık 20.000-25.000 gen var. Toplam DNA\'nın yalnızca %2\'si gen içerir.' },
+  'genomiks': { term: 'Genomiks', def: 'Bir organizmanın tüm genetik materúalini (genomunu) inceleyen bilim dalı. Tüm genler, düzenleyici bölgeler ve jenetiketik varyantlar çalışılır.' },
+  'transkriptomiks': { term: 'Transkriptomiks', def: 'Bir hücredeki tüm RNA molekülleri̇ni inceleyen bilim dalı. Hangi genlerin ne kadar aktif olduğunu ölçer. RNA-seq bu alanda kullanılan temel yöntemdir.' },
+  'proteomiks': { term: 'Proteomiks', def: 'Bir hücredeki tüm proteinleri inceleyen bilim dalı. Hangi proteinlerin üretildiğini ve ne miktarında bulunduğunu analiz eder.' },
+  'metabolomiks': { term: 'Metabolomiks', def: 'Hücteki tüm metabolitleri (küçük moleküller) ölçen bilim dalı. Glikoz, amino asitler, yağ asitleri gibi maddelerin düzeyi incelenir.' },
+  'rna-seq': { term: 'RNA-seq', def: 'RNA Sekanslama. Bir hücteki tüm mRNA\'ları yüksek hızlı sekanslama ile belirleyen yöntem. Aynı anda 20.000+ genin aktivitesi ölçülebilir.' },
+  'sekans': { term: 'Sekans', def: 'DNA ya da RNA\'daki nküleotid bazlarının sıralı dizisi (ATGCGG... gibi). Sekanslama = bu diziyi okuma işlemi.' },
+  'ekspresyon': { term: 'Gen İfadesi (Ekspresyon)', def: 'Bir genin aktif olarak çalışıp çalışmadığı. Gen\ "açık" ise RNA ve protein üretilir; "kapalı" ise üretilmez. Transkriptomiks ekspresyonu ölçer.' },
+  'transkripsiyon': { term: 'Transkripsiyon', def: 'DNA\'daki gen bilgisinin RNA\'ya kopyalanma süreci. RNA Polimeraz enzimi tarafından gerçekleştirilir. Merkezi Dogma\'nın birinci adımı.' },
+  'translasyon': { term: 'Translasyon', def: 'mRNA\'daki genetik kodun proteine çevrilmesi süreci. Ribozomlar tarafından gerçekleştirilir. Her üç baz (kodon) bir amino aside karşılık gelir.' },
+  'ribozom': { term: 'Ribozom', def: 'Protein sentezinin gerçekleştiği hcre organelŀ. mRNA\'yı okuyarak amino asitleri doğru sırayla birleştirir. Hücteki en yoğun makromoleklleröktir.' },
+  'enzim': { term: 'Enzim', def: 'Kimyasal reaksiyonları hızlandıran protein katalizrl. Kendisi değişmez ama reaksiyonu milyonlarca kat hızlandırır. Hüctre fabrikasının "makineler"i.' },
+  'nukleotid': { term: 'Nüleotid', def: 'DNA ve RNA\'nın yapı taşları. Bir şeker, bir fosfat grubu ve bir azotlu bazdan oluşur. DNA\'da 4 tür vardır: Adenin (A), Timin (T), Guanin (G), Sitozin (C).' },
+  'merkezi dogma': { term: 'Merkezi Dogma', def: 'Francis Crick\'in 1958\'de tanımladığı temel biyolojik ilke: DNA → RNA → Protein. Bilgi akışının yönctünü belirler. "Hayatın gizi"' },
+  'omiks': { term: 'Omiks', def: 'Genomiks, transkriptomiks, proteomiks gibi biyomolükcül sistemleri bütünsel olarak inceleyen bilim dallarının genel adı. "-ome" eki "tüm" anlamına gelir.' },
+  'heatmap': { term: 'Isı Haritası (Heatmap)', def: 'Gen ifade verilerini renk kodları ile gösteren görselleştirme yöntemi. Sıcak renkler (kırmızı) yüksek, soğuk renkler (mavi) düşük ifadeyi gösterir.' },
+  'umap': { term: 'UMAP', def: 'Uniform Manifold Approximation and Projection. Yüksek boyutlu veriyi 2B\'ye indirgeyen bir makine öğrenimi yöntemi. Tek hücre verilerini öbelemek için kullanılır.' },
+  'scrna-seq': { term: 'scRNA-seq', def: 'Tek Hücre RNA Sekanslama. Her hüctrenin RNA profili ayrı ayrı ölçülür. Farklı hücre tiplerini (kanser hücresi, bağışıklık hücresi) birbirinden ayırt etmeye yarar.' },
+  'cluster': { term: 'Küme (Cluster)', def: 'Benzer özellikler gösteren veri noktalarının grubu. scRNA-seq\'de benzer gen ifadesi gösteren hücreler aynı kümede toplanır ve genellikle aynı hücre tipini temsil eder.' },
+  'crispr': { term: 'CRISPR-Cas9', def: 'Bakterilerden keşfedilen gen düzenleme sistemi. DNA\'yı istenilen noktada "makas gibi" kesebilir. 2020 Nobel Kimya Ödülü. Gen terapisi, tarım ve ilaçta devrim yaratmaktadır.' },
+  'ngs': { term: 'NGS / Yeni Nesil Dizileme', def: 'Next Generation Sequencing. Milyonlarca DNA/RNA parçasını aynı anda okuyabilen yüksek hızlı sekanslama teknolojisi. RNA-seq\'in temelini oluşturur.' },
+  'amino asit': { term: 'Amino Asit', def: 'Proteinlerin yapı taşı. 20 farklı amino asit var. Farklı dizilimlerdeki amino asit zincirleri farklı 3D şekillerde katlanır ve farklı fonksiyonları olan proteinleri oluşturur.' },
+  'mitokondri': { term: 'Mitokondri', def: 'Hücrenin enerji merkezi. Glikoz ve oksijeni kullanarak ATP üretir. Kendi DNA\'sı vardır — milyarlarca yıl önce bakteri iken hücre içinde yaşayan bir ortak olmuştur.' },
+  'atp': { term: 'ATP', def: 'Adenozin Trifosfat. Hücrenin evrensel para birimi. Tüm biyolojik süreçler ATP harcar: kas kasması, sinir ileti, protein üretimi... Dinlenirken bile saniyede kg\'larca ATP tüketilir.' },
+};
+
+const popup = document.getElementById('glossary-popup');
+const gpTerm = document.getElementById('gp-term');
+const gpDef  = document.getElementById('gp-def');
+let popupOpen = false;
+
+function showGlossary(el, key) {
+  const entry = GLOSSARY[key.toLowerCase()];
+  if (!entry) return;
+  gpTerm.textContent = entry.term;
+  gpDef.textContent  = entry.def;
+
+  // Position popup
+  const rect = el.getBoundingClientRect();
+  const pw = 320, ph = 120;
+  let left = rect.left;
+  let top  = rect.bottom + 8;
+  if (left + pw > window.innerWidth - 16) left = window.innerWidth - pw - 16;
+  if (top + ph > window.innerHeight - 16) top = rect.top - ph - 8;
+  popup.style.left = left + 'px';
+  popup.style.top  = top  + 'px';
+  popup.classList.add('show');
+  popupOpen = true;
+}
+
+function hideGlossary() {
+  popup.classList.remove('show');
+  popupOpen = false;
+}
+
+document.getElementById('gp-close').addEventListener('click', e => { e.stopPropagation(); hideGlossary(); });
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('.gl');
+  if (el) {
+    e.stopPropagation();
+    const key = el.dataset.term;
+    if (popupOpen && gpTerm.textContent === (GLOSSARY[key] || {}).term) { hideGlossary(); return; }
+    showGlossary(el, key);
+    return;
+  }
+  if (!e.target.closest('#glossary-popup')) hideGlossary();
+});
+</script>
+</body>
+</html>
