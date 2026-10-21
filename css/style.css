@@ -696,7 +696,7 @@ section.page-section.active-section, footer.page-section.active-section {
 }
 
 .logo { order: 1; line-height: 1.15; }
-.logo a { display: block; }
+.logo a { display: flex; align-items: center; gap: 0.85rem; }
 
 .logo-sub {
     display: block;
@@ -774,17 +774,6 @@ section.page-section.active-section, footer.page-section.active-section {
     scroll-margin-top: 10rem;
 }
 
-/* Hero portrait */
-.hero-photo {
-    display: block;
-    width: 96px;
-    height: 96px;
-    object-fit: cover;
-    border-radius: 50%;
-    margin-bottom: 1.25rem;
-    border: 2px solid var(--accent-teal);
-    box-shadow: 0 0 24px rgba(0, 240, 255, 0.3);
-}
 
 .cookie-prefs {
     color: var(--text-muted);
@@ -793,3 +782,22 @@ section.page-section.active-section, footer.page-section.active-section {
     border-bottom: 1px dotted var(--text-muted);
 }
 .cookie-prefs:hover, .cookie-prefs:focus-visible { color: var(--accent-teal); border-color: var(--accent-teal); }
+
+/* Logo portrait (left of the name) */
+.logo-photo {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--accent-teal);
+    box-shadow: 0 0 14px rgba(0, 240, 255, 0.3);
+}
+
+.logo-text { display: block; }
+
+@media (max-width: 900px) {
+    .logo-photo { width: 40px; height: 40px; }
+    .logo a { gap: 0.65rem; }
+    .logo { font-size: 1.25rem; }
+}
