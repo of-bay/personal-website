@@ -26,14 +26,22 @@ document.addEventListener('DOMContentLoaded', () => {
             else a.removeAttribute('aria-current');
         });
 
-        const heading = target.querySelector('h1, h2');
-        document.title = target.id === 'home' || !heading
-            ? 'Dr. Ömer Faruk Bay | Bioinformatics & Metabolic Modeling'
-            : heading.textContent.replace(/\s+/g, ' ').trim() + ' | Ömer Faruk Bay';
-
+        updateTitle(target);
         setMenu(false);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
+    function updateTitle(target) {
+        target = target || document.querySelector('.page-section.active-section');
+        if (!target) return;
+        const i18n = window.i18n;
+        const heading = target.querySelector('h1, h2');
+        document.title = target.id === 'home' || !heading
+            ? (i18n ? i18n.homeTitle() : 'Dr. Ömer Faruk Bay | Bioinformatics & Metabolic Modeling')
+            : heading.textContent.replace(/\s+/g, ' ').trim() + (i18n ? i18n.titleSuffix() : ' | Ömer Faruk Bay');
+    }
+
+    document.addEventListener('langchange', () => updateTitle());
 
     if (toggle) toggle.addEventListener('click', () => setMenu(!menu.classList.contains('open')));
 
