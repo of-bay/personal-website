@@ -8,12 +8,13 @@
     var TR = {
         'nav.aria': 'Ana menü',
         'nav.toggle': 'Menüyü aç/kapat',
+        'nav.sub': 'Biyoinformatik · Metabolik Modelleme',
         'nav.about': 'Hakkımda',
         'nav.services': 'Danışmanlık',
         'nav.research': 'Araştırma',
         'nav.publications': 'Yayınlar',
         'nav.collaborators': 'İş Birlikleri',
-        'nav.tutorials': 'Dersler',
+        'nav.tutorials': 'Eğitimler',
         'nav.contact': 'İletişim',
 
         'hero.sub': 'Biyolojik Karmaşıklık ile Hesaplamalı Hassasiyet Arasında Köprü',
@@ -67,7 +68,8 @@
         'pubs.read': 'Makaleyi Oku',
         'pubs.all': 'Tam listeyi Google Scholar\'da gör →',
 
-        'tut.title': 'Dersler ve <span class="gradient-text">Eğitimler</span>',
+        'tut.title': 'Eğitimler ve <span class="gradient-text">Bilim İletişimi</span>',
+        'tut.sub': 'Üniversite Eğitimi',
         'tut.h1': 'Abdullah Gül Üniversitesi (AGÜ)',
         'tut.r1': 'Lisans ve Lisansüstü Öğretim Görevlisi',
         'tut.p1': 'Şu anda <i>Hesaplamalı Biyoloji</i> ve <i>Fonksiyonel Genomik</i> dahil çekirdek biyoinformatik müfredatını yürütmektedir. Teorik dizileri pratik veri bilimine bağlamaya odaklanır.',
@@ -95,6 +97,7 @@
         'contact.email': 'E-posta Gönder',
         'contact.cv': 'Özgeçmişi İndir',
         'contact.profiles': 'Profiller',
+        'contact.cookies': 'Çerez tercihleri',
         'contact.rights': '&copy; 2026 Dr. Ömer Faruk Bay. Tüm hakları saklıdır.',
 
         'title.home': 'Dr. Ömer Faruk Bay | Biyoinformatik ve Metabolik Modelleme',

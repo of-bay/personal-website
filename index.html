@@ -62,15 +62,14 @@
     <!-- Navigation Area -->
     <nav class="glass-nav" aria-label="Main" data-i18n-aria="nav.aria">
         <div class="nav-container">
-            <div class="logo"><a href="#home">Ömer Faruk <span>Bay</span></a></div>
+            <div class="logo"><a href="#home">Ömer Faruk <span>Bay</span><small class="logo-sub" data-i18n="nav.sub">Bioinformatics · Metabolic Modeling</small></a></div>
             <ul class="nav-links" id="nav-links">
                 <li><a href="#about" data-i18n="nav.about">About</a></li>
                 <li><a href="#services" data-i18n="nav.services">Consulting</a></li>
                 <li><a href="#research" data-i18n="nav.research">Research</a></li>
                 <li><a href="#publications" data-i18n="nav.publications">Publications</a></li>
                 <li><a href="#collaborators" data-i18n="nav.collaborators">Collaborators</a></li>
-                <li><a href="#tutorials" data-i18n="nav.tutorials">Tutorials</a></li>
-                <li><a href="#tubitak" class="nav-tubitak">TÜBİTAK 4004</a></li>
+                <li><a href="#tutorials" data-i18n="nav.tutorials">Teaching</a></li>
                 <li><a href="#contact" class="btn-primary-sm" data-i18n="nav.contact">Contact</a></li>
             </ul>
             <div class="nav-actions">
@@ -88,6 +87,7 @@
     <!-- Hero Section -->
     <header class="hero page-section active-section" id="home">
         <div class="hero-content">
+            <img class="hero-photo" src="assets/profile.jpg" width="96" height="96" alt="Dr. Ömer Faruk Bay" fetchpriority="high">
             <h2 class="sub-headline" data-i18n="hero.sub">Bridging the Gap Between Biological Complexity and Computational Precision</h2>
             <h1 class="main-headline" data-i18n="hero.title">Decoding Life with <br><span class="gradient-text">Metabolic Models</span> &amp; AI</h1>
             <p class="hero-lead" data-i18n="hero.lead">I build genome-scale metabolic models and functional genomics pipelines that turn raw omics data into predictions about how cells work — from parasitic whipworms to gut microbiomes.</p>
@@ -202,7 +202,8 @@
 
     <!-- Tutorials & Teaching -->
     <section id="tutorials" class="section-container alternate-bg page-section">
-        <h2 class="section-title" data-i18n="tut.title">Courses &amp; <span class="gradient-text">Tutorials</span></h2>
+        <h2 class="section-title" data-i18n="tut.title">Teaching &amp; <span class="gradient-text">Outreach</span></h2>
+        <h3 class="sub-title" data-i18n="tut.sub">University Teaching</h3>
         <div class="tutorials-grid">
             <div class="tutorial-card glass-card">
                 <h3 data-i18n="tut.h1">Abdullah Gül University (AGÜ)</h3>
@@ -215,32 +216,30 @@
                 <p class="card-body-gap" data-i18n="tut.p2">Led practical modules for MSc students including <i>Programming Skills</i>, <i>Computational Approaches to Biology</i>, and <i>Bioinformatics Tools and Resources</i>.</p>
             </div>
         </div>
-    </section>
-
-    <!-- TÜBİTAK 4004 Lessons -->
-    <section id="tubitak" class="section-container default-section page-section">
-        <h2 class="section-title" data-i18n="tub.title">TÜBİTAK 4004 &mdash; <span class="gradient-text">Cell Factory</span></h2>
-        <p class="section-intro" data-i18n="tub.desc">
-            Bioinformatics and systems biology lessons for high-school students, built as an interactive slide system. (The lessons themselves are in Turkish.)
-        </p>
-        <div class="tutorials-grid">
-            <div class="tutorial-card glass-card tub-card tub-teal">
-                <div class="tub-icon">🧬</div>
-                <h3 data-i18n="tub.h1">Lesson 1: From Gene to RNA</h3>
-                <p class="tub-sub"><strong data-i18n="tub.s1">Introduction to Omics Technologies</strong></p>
-                <p class="tub-desc" data-i18n="tub.p1">
-                    An interactive introduction to DNA, the Central Dogma, transcription, RNA-seq, genomics, transcriptomics and single-cell analysis. 16 slides.
-                </p>
-                <a href="lessons/lesson1.html" class="tub-btn" data-i18n="tub.go">Go to lesson →</a>
-            </div>
-            <div class="tutorial-card glass-card tub-card tub-gold">
-                <div class="tub-icon">⚙️</div>
-                <h3 data-i18n="tub.h2">Lesson 2: The Cell Factory</h3>
-                <p class="tub-sub"><strong data-i18n="tub.s2">Metabolism &amp; Modeling</strong></p>
-                <p class="tub-desc" data-i18n="tub.p2">
-                    Metabolism, glycolysis, metabolic networks, the GPS analogy, FBA modeling and synthetic biology simulations. 15 slides.
-                </p>
-                <a href="lessons/lesson2.html" class="tub-btn" data-i18n="tub.go">Go to lesson →</a>
+        <div id="tubitak" class="tub-block">
+            <h3 class="sub-title" data-i18n="tub.title">TÜBİTAK 4004 &mdash; <span class="gradient-text">Cell Factory</span></h3>
+            <p class="section-intro" data-i18n="tub.desc">
+                Bioinformatics and systems biology lessons for high-school students, built as an interactive slide system. (The lessons themselves are in Turkish.)
+            </p>
+            <div class="tutorials-grid">
+                <div class="tutorial-card glass-card tub-card tub-teal">
+                    <div class="tub-icon">🧬</div>
+                    <h3 data-i18n="tub.h1">Lesson 1: From Gene to RNA</h3>
+                    <p class="tub-sub"><strong data-i18n="tub.s1">Introduction to Omics Technologies</strong></p>
+                    <p class="tub-desc" data-i18n="tub.p1">
+                        An interactive introduction to DNA, the Central Dogma, transcription, RNA-seq, genomics, transcriptomics and single-cell analysis. 16 slides.
+                    </p>
+                    <a href="lessons/lesson1.html" class="tub-btn" data-i18n="tub.go">Go to lesson →</a>
+                </div>
+                <div class="tutorial-card glass-card tub-card tub-gold">
+                    <div class="tub-icon">⚙️</div>
+                    <h3 data-i18n="tub.h2">Lesson 2: The Cell Factory</h3>
+                    <p class="tub-sub"><strong data-i18n="tub.s2">Metabolism &amp; Modeling</strong></p>
+                    <p class="tub-desc" data-i18n="tub.p2">
+                        Metabolism, glycolysis, metabolic networks, the GPS analogy, FBA modeling and synthetic biology simulations. 15 slides.
+                    </p>
+                    <a href="lessons/lesson2.html" class="tub-btn" data-i18n="tub.go">Go to lesson →</a>
+                </div>
             </div>
         </div>
     </section>
@@ -279,11 +278,13 @@
             </ul>
         </div>
         <div class="footer-bottom">
+            <p><a href="#" id="cookie-prefs" class="cookie-prefs" data-i18n="contact.cookies">Cookie preferences</a></p>
             <p data-i18n="contact.rights">&copy; 2026 Dr. Ömer Faruk Bay. All rights reserved.</p>
         </div>
     </footer>
 
     <script src="js/i18n.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/analytics.js" defer></script>
 </body>
 </html>

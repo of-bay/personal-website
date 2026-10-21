@@ -16,7 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function route() {
         const id = (location.hash || '#home').slice(1);
-        const target = document.getElementById(id) || document.getElementById('home');
+        // An id may point at a sub-block (e.g. #tubitak); show the section that contains it.
+        const el = document.getElementById(id);
+        const target = (el && el.closest('.page-section')) || document.getElementById('home');
 
         sections.forEach(sec => sec.classList.remove('active-section'));
         target.classList.add('active-section');
@@ -28,7 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateTitle(target);
         setMenu(false);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (el && el !== target) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function updateTitle(target) {
