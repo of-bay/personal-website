@@ -1,28 +1,42 @@
 // main.js - Client side logic
+// Hash-based routing: every section has its own URL (e.g. /#publications),
+// the back button works, and links can be shared.
 
 document.addEventListener('DOMContentLoaded', () => {
-    const navLinks = document.querySelectorAll('a[href^="#"]');
     const sections = document.querySelectorAll('.page-section');
+    const navLinks = document.querySelectorAll('.nav-links a');
+    const toggle = document.getElementById('nav-toggle');
+    const menu = document.getElementById('nav-links');
 
-    navLinks.forEach(link => {
-        link.addEventListener('click', function (e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            
-            // Remove active class from all sections
-            sections.forEach(sec => {
-                sec.classList.remove('active-section');
-            });
-            
-            // Add active class to target section
-            const targetSection = document.querySelector(targetId);
-            if (targetSection) {
-                targetSection.classList.add('active-section');
-                // Scroll to top of page when changing view
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+    function setMenu(open) {
+        if (!toggle || !menu) return;
+        menu.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+    }
+
+    function route() {
+        const id = (location.hash || '#home').slice(1);
+        const target = document.getElementById(id) || document.getElementById('home');
+
+        sections.forEach(sec => sec.classList.remove('active-section'));
+        target.classList.add('active-section');
+
+        navLinks.forEach(a => {
+            if (a.getAttribute('href') === '#' + target.id) a.setAttribute('aria-current', 'page');
+            else a.removeAttribute('aria-current');
         });
-    });
 
-    console.log("Welcome to Ömer Faruk Bay's single page app logic!");
+        const heading = target.querySelector('h1, h2');
+        document.title = target.id === 'home' || !heading
+            ? 'Dr. Ömer Faruk Bay | Bioinformatics & Metabolic Modeling'
+            : heading.textContent.replace(/\s+/g, ' ').trim() + ' | Ömer Faruk Bay';
+
+        setMenu(false);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    if (toggle) toggle.addEventListener('click', () => setMenu(!menu.classList.contains('open')));
+
+    window.addEventListener('hashchange', route);
+    route();
 });

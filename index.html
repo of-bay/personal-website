@@ -10,7 +10,48 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <!-- Main Style -->
     <link rel="stylesheet" href="css/style.css">
-    <meta name="description" content="Professional portfolio and consulting site for Bioinformatics, Metabolic Modeling, and Functional Genomics.">
+    <meta name="description" content="Dr. Ömer Faruk Bay — bioinformatics, genome-scale metabolic modeling and functional genomics. Research, publications, courses and consulting.">
+    <meta name="author" content="Ömer Faruk Bay">
+    <meta name="theme-color" content="#070913">
+    <link rel="canonical" href="https://omerfarukbay.com/">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23070913'/%3E%3Ctext x='50' y='68' font-size='54' font-family='sans-serif' font-weight='800' text-anchor='middle' fill='%2300f0ff'%3EÖB%3C/text%3E%3C/svg%3E">
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Ömer Faruk Bay">
+    <meta property="og:title" content="Dr. Ömer Faruk Bay | Bioinformatics &amp; Metabolic Modeling">
+    <meta property="og:description" content="Genome-scale metabolic modeling, functional genomics and AI. Research, publications, courses and consulting.">
+    <meta property="og:url" content="https://omerfarukbay.com/">
+    <meta property="og:image" content="https://omerfarukbay.com/assets/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Portrait of Dr. Ömer Faruk Bay">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://omerfarukbay.com/assets/og-image.jpg">
+    <meta name="twitter:title" content="Dr. Ömer Faruk Bay | Bioinformatics &amp; Metabolic Modeling">
+    <meta name="twitter:description" content="Genome-scale metabolic modeling, functional genomics and AI.">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Ömer Faruk Bay",
+      "honorificPrefix": "Dr.",
+      "url": "https://omerfarukbay.com/",
+      "image": "https://omerfarukbay.com/assets/profile.jpg",
+      "email": "mailto:omerfaruk.bay@agu.edu.tr",
+      "jobTitle": "Lecturer, Bioinformatics",
+      "affiliation": { "@type": "CollegeOrUniversity", "name": "Abdullah Gül University" },
+      "alumniOf": [
+        { "@type": "CollegeOrUniversity", "name": "University of Manchester" },
+        { "@type": "CollegeOrUniversity", "name": "Atatürk University" }
+      ],
+      "knowsAbout": ["Metabolic Modeling", "Functional Genomics", "Transcriptomics", "Systems Biology", "Bioinformatics"],
+      "sameAs": [
+        "https://www.linkedin.com/in/omerfarukbay",
+        "https://orcid.org/0000-0002-1142-2204",
+        "https://scholar.google.com/citations?user=tFJbHfUAAAAJ"
+      ]
+    }
+    </script>
 </head>
 <body>
 
@@ -19,10 +60,13 @@
     <div class="background-glow pos-2"></div>
     
     <!-- Navigation Area -->
-    <nav class="glass-nav">
+    <nav class="glass-nav" aria-label="Main">
         <div class="nav-container">
-            <h1 class="logo"><a href="#home" style="text-decoration:none; color:inherit;">Ömer Faruk <span>Bay</span></a></h1>
-            <ul class="nav-links">
+            <div class="logo"><a href="#home" style="text-decoration:none; color:inherit;">Ömer Faruk <span>Bay</span></a></div>
+            <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-links">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="nav-links">
                 <li><a href="#about">About</a></li>
                 <li><a href="#services">Consulting</a></li>
                 <li><a href="#research">Research</a></li>
@@ -40,26 +84,10 @@
         <div class="hero-content">
             <h2 class="sub-headline">Bridging the Gap Between Biological Complexity and Computational Precision</h2>
             <h1 class="main-headline">Decoding Life with <br><span class="gradient-text">Metabolic Models</span> & AI</h1>
-            <div class="hero-description" style="text-align: left; font-size: 1.1rem; line-height: 1.7; max-width: 800px; margin: 1.5rem auto 0 auto;">
-                <p>At the intersection of systems biology and artificial intelligence, we view the cell not just as a biological entity, but as a complex, computable network. Our mission is to transform raw "omic" data into high-fidelity digital twins of cellular metabolism.</p>
-                
-                <h3 style="color: var(--accent-teal); margin: 1.5rem 0 0.5rem 0; font-size: 1.3rem; font-weight: 600;">The Vision</h3>
-                <p>Biological systems are governed by thousands of interconnected reactions. To truly understand life, we must map these connections. Through Genome-Scale Metabolic Modeling (GSMM), we reconstruct the metabolic blueprints of organisms, allowing us to simulate, predict, and optimize cellular behavior with unprecedented accuracy.</p>
-                
-                <h3 style="color: var(--accent-purple); margin: 1.5rem 0 0.5rem 0; font-size: 1.3rem; font-weight: 600;">Our Approach: AI meets Metabolism</h3>
-                <p>While traditional bioinformatics provides the map, AI-driven modeling provides the engine. We leverage advanced machine learning and constraint-based reconstruction to:</p>
-                <ul style="margin: 0.5rem 0 0 1.5rem; text-align: left; display: flex; flex-direction: column; gap: 0.5rem; list-style-type: disc;">
-                    <li><strong style="color: var(--text-primary);">Predict Flux Dynamics:</strong> Quantifying the flow of metabolites through complex pathways.</li>
-                    <li><strong style="color: var(--text-primary);">Optimize Bioproduction:</strong> Engineering microbial "cell factories" for sustainable industry.</li>
-                    <li><strong style="color: var(--text-primary);">Identify Therapeutic Targets:</strong> Decoding the metabolic vulnerabilities of pathogens and cancer cells.</li>
-                    <li><strong style="color: var(--text-primary);">In Silico Experimentation:</strong> Reducing laboratory costs and time by simulating thousands of genetic conditions in seconds.</li>
-                </ul>
-                
-                <h3 style="color: var(--accent-teal); margin: 1.5rem 0 0.5rem 0; font-size: 1.3rem; font-weight: 600;">Why It Matters</h3>
-                <p>In an era of big data, the challenge is no longer just gathering information—it is finding the meaning within it. By integrating AI with structural metabolic networks, we move beyond simple observation. We are decoding the logic of life.</p>
-            </div>
+            <p class="hero-lead">I build genome-scale metabolic models and functional genomics pipelines that turn raw omics data into predictions about how cells work — from parasitic whipworms to gut microbiomes.</p>
             <div class="hero-cta">
-                <a href="#services" class="btn-primary">Explore Services</a>
+                <a href="#contact" class="btn-primary">Get in Touch</a>
+                <a href="#publications" class="btn-secondary">View Publications</a>
             </div>
         </div>
         <div class="hero-visual">
@@ -80,6 +108,7 @@
         <h2 class="section-title">About <span class="gradient-text">Me</span></h2>
         <div class="about-grid">
             <div class="about-text glass-card">
+                <img class="about-photo" src="assets/profile.jpg" width="220" height="220" alt="Portrait of Dr. Ömer Faruk Bay" loading="lazy">
                 <p>Dr. Ömer Faruk Bay holds a degree in Molecular Biology and Genetics from Atatürk University, and earned his master's and Ph.D. in Systems Biology & Bioinformatics from the University of Manchester, UK. His doctoral research centered on the metabolism of <i>Trichuris muris</i>, where he pioneered the first genome-scale metabolic model for this parasitic whipworm to uncover novel therapeutic targets.</p>
                 <p>As a Postdoctoral Researcher in Lars Kuepfer's group, his work revolved around reconstructing genome-scale metabolic models for the synthetic mouse intestinal bacterial community (OMM19). By mapping their metabolic capabilities and interactions, he successfully decoded their collective phenotype and resilience to perturbations.</p>
                 <p>Currently, Dr. Bay serves as a Lecturer at AGÜ teaching Bioinformatics, and works as a consultant leveraging his deep expertise in functional genomics, systems biology, and metabolic modeling.</p>
@@ -92,6 +121,24 @@
                 <span class="skill-badge">Python / R</span>
                 <span class="skill-badge">Bioinformatics</span>
             </div>
+        </div>
+        <div class="vision-block glass-card">
+            <p>At the intersection of systems biology and artificial intelligence, we view the cell not just as a biological entity, but as a complex, computable network. Our mission is to transform raw "omic" data into high-fidelity digital twins of cellular metabolism.</p>
+
+            <h3 class="t-teal">The Vision</h3>
+            <p>Biological systems are governed by thousands of interconnected reactions. To truly understand life, we must map these connections. Through Genome-Scale Metabolic Modeling (GSMM), we reconstruct the metabolic blueprints of organisms, allowing us to simulate, predict, and optimize cellular behavior with unprecedented accuracy.</p>
+
+            <h3 class="t-purple">Our Approach: AI meets Metabolism</h3>
+            <p>While traditional bioinformatics provides the map, AI-driven modeling provides the engine. We leverage advanced machine learning and constraint-based reconstruction to:</p>
+            <ul>
+                <li><strong>Predict Flux Dynamics:</strong> Quantifying the flow of metabolites through complex pathways.</li>
+                <li><strong>Optimize Bioproduction:</strong> Engineering microbial "cell factories" for sustainable industry.</li>
+                <li><strong>Identify Therapeutic Targets:</strong> Decoding the metabolic vulnerabilities of pathogens and cancer cells.</li>
+                <li><strong>In Silico Experimentation:</strong> Reducing laboratory costs and time by simulating thousands of genetic conditions in seconds.</li>
+            </ul>
+
+            <h3 class="t-teal">Why It Matters</h3>
+            <p>In an era of big data, the challenge is no longer just gathering information—it is finding the meaning within it. By integrating AI with structural metabolic networks, we move beyond simple observation. We are decoding the logic of life.</p>
         </div>
     </section>
 
@@ -221,8 +268,15 @@
             <h2>Let's build something <span class="gradient-text">amazing</span></h2>
             <p>Available for consulting, collaborations, and speaking engagements.</p>
             <div class="footer-cta">
-                <a href="mailto:your.email@example.com" class="btn-primary">Email Me</a>
+                <a href="mailto:omerfaruk.bay@agu.edu.tr" class="btn-primary">Email Me</a>
+                <a href="Omer_Faruk_Bay_CV_T%C3%BCrkce.pdf" target="_blank" rel="noopener" class="btn-primary">Download CV</a>
             </div>
+            <ul class="social-links" aria-label="Profiles">
+                <li><a href="https://www.linkedin.com/in/omerfarukbay" target="_blank" rel="noopener me">LinkedIn</a></li>
+                <li><a href="https://orcid.org/0000-0002-1142-2204" target="_blank" rel="noopener me">ORCID</a></li>
+                <li><a href="https://scholar.google.com/citations?user=tFJbHfUAAAAJ&amp;hl=en" target="_blank" rel="noopener me">Google Scholar</a></li>
+                <li><a href="mailto:omerfaruk.bay@agu.edu.tr">omerfaruk.bay@agu.edu.tr</a></li>
+            </ul>
         </div>
         <div class="footer-bottom">
             <p>&copy; 2026 Dr. Ömer Faruk Bay. All rights reserved.</p>
