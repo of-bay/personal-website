@@ -65,6 +65,7 @@
 
         'pubs.title': 'Önemli <span class="gradient-text">Yayınlar</span>',
         'pubs.read': 'Makaleyi Oku',
+        'pubs.all': 'Tam listeyi Google Scholar\'da gör →',
 
         'tut.title': 'Dersler ve <span class="gradient-text">Eğitimler</span>',
         'tut.h1': 'Abdullah Gül Üniversitesi (AGÜ)',
