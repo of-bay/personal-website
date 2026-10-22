@@ -963,3 +963,64 @@ section.page-section.active-section, footer.page-section.active-section {
 .pg-map-legend { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 0.5rem; }
 @media (prefers-reduced-motion: reduce) { .pg-edge.active { animation: none; } }
 @media (max-width: 800px) { .pg-node text { font-size: 15px; } .pg-tag text { font-size: 14px; } }
+
+/* PDF report (only visible when printing) */
+.pg-pdf { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.pg-pdf small { color: var(--text-muted); font-size: 0.75rem; }
+#pg-report { display: none; }
+@media print {
+    @page { size: A4; margin: 14mm; }
+    body.printing-report > *:not(#pg-report) { display: none !important; }
+    body.printing-report { background: #fff !important; }
+    body.printing-report #pg-report { display: block; }
+    .pg-rep { color: #0f172a; font: 11pt/1.45 'Inter', Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pg-rep h1 { font-size: 22pt; margin: 0; color: #0f172a; }
+    .pg-rep .sub { margin: 2pt 0; color: #475569; font-size: 12pt; }
+    .pg-rep .meta { margin: 0 0 10pt; color: #64748b; font-size: 9pt; border-bottom: 2pt solid #0891b2; padding-bottom: 6pt; }
+    .pg-rep h2 { font-size: 12.5pt; margin: 14pt 0 5pt; color: #0e7490; break-after: avoid; }
+    .pg-rep section { break-inside: avoid; }
+    .pg-rep section.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14pt; }
+    .pg-rep dl { margin: 0; }
+    .pg-rep dt { font-size: 9pt; color: #64748b; margin-top: 5pt; }
+    .pg-rep dd { margin: 0; font-weight: 600; }
+    .pg-rep .big { font-size: 20pt; color: #7c3aed; margin-right: 8pt; }
+    .pg-rep .bar { display: inline-block; vertical-align: middle; width: 90pt; height: 7pt; background: #e2e8f0; border-radius: 4pt; overflow: hidden; }
+    .pg-rep .bar.wide { width: 120pt; }
+    .pg-rep .bar span { display: block; height: 100%; background: #0891b2; }
+    .pg-rep .ai p { background: #f1f5f9; border-left: 3pt solid #7c3aed; padding: 7pt 10pt; margin: 0 0 3pt; }
+    .pg-rep small { color: #64748b; font-size: 8.5pt; }
+    .pg-rep .mapbox { border: 1pt solid #e2e8f0; border-radius: 6pt; padding: 4pt; }
+    .pg-rep-svg { width: 88%; height: auto; display: block; margin: 0 auto; }
+    .pg-rep-svg .pg-node rect { fill: #fff; stroke: #94a3b8; }
+    .pg-rep-svg .pg-bio rect { fill: #f3e8ff; stroke: #7c3aed; }
+    .pg-rep-svg .pg-node text { fill: #0f172a; }
+    .pg-rep-svg .pg-tag rect { fill: #fff; stroke: #0891b2; }
+    .pg-rep-svg .pg-tag text { fill: #0e7490; }
+    .pg-rep-svg .pg-tag.on rect { fill: #fee2e2; stroke: #dc2626; }
+    .pg-rep-svg .pg-tag.on text { fill: #dc2626; }
+    .pg-rep-svg .pg-edge.off { stroke-dasharray: 4 6; }
+    .pg-rep table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    .pg-rep th { text-align: left; color: #64748b; font-weight: 500; border-bottom: 1pt solid #cbd5e1; padding: 3pt 4pt; }
+    .pg-rep td { padding: 3pt 4pt; border-bottom: 0.5pt solid #e2e8f0; }
+    .pg-rep td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .pg-rep tr.ess td:last-child { color: #dc2626; font-weight: 600; }
+    .pg-rep tr.slow td:last-child { color: #d97706; }
+    .pg-rep tr.fine td:last-child { color: #15803d; }
+    .pg-rep .glos { display: grid; grid-template-columns: 1fr 1fr; gap: 5pt 14pt; }
+    .pg-rep .glos div { break-inside: avoid; }
+    .pg-rep .glos dt { margin: 0; color: #0e7490; font-size: 10pt; font-weight: 600; }
+    .pg-rep .glos dd { font-weight: 400; font-size: 9pt; color: #334155; }
+    .pg-rep footer { margin-top: 14pt; padding-top: 6pt; border-top: 1pt solid #cbd5e1; font-size: 8.5pt; color: #64748b; }
+}
+
+/* flux values on the map and report charts */
+.pg-fv { fill: #cbd5e1; font-size: 11px; font-variant-numeric: tabular-nums; pointer-events: none; }
+.pg-tv { fill: var(--text-muted); font-size: 10px; font-style: normal; font-variant-numeric: tabular-nums; pointer-events: none; }
+.pg-tag.on .pg-tv { fill: #ff7a88; text-decoration: none; }
+@media print {
+    .pg-rep .chart { width: 100%; height: auto; display: block; border: 1pt solid #e2e8f0; border-radius: 6pt; background: #fff; }
+    .pg-rep .chartnote { margin: 4pt 0 0; }
+    .pg-rep-svg .pg-fv { fill: #0f172a; font-weight: 600; }
+    .pg-rep-svg .pg-tv { fill: #475569; }
+    .pg-rep-svg .pg-tag.on .pg-tv { fill: #dc2626; }
+}

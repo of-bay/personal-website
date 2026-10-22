@@ -42,6 +42,7 @@
         'pg.aiNote': 'Bir yapay zeka simülasyon sonucunu okur ve sade bir dille açıklar.',
         'pg.aiBtn': 'Bu sonucu açıkla',
         'pg.mapTitle': 'Hücre haritası',
+        'pg.pdf': 'PDF raporu indir',
         'nav.contact': 'İletişim',
 
         'hero.sub': 'Biyoinformatik · Metabolik Modelleme · Fonksiyonel Genomik',

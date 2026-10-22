@@ -60,6 +60,7 @@
       if (id === 'UPT_GLC') ub = opts.glucose;
       if (id === 'UPT_O2') ub = opts.oxygen;
       if (id === 'PFL' && opts.oxygen > 0.5) ub = 0; // oxygen inactivates PFL
+      if (id === 'PDH' && opts.oxygen <= 0.5) ub = 0; // PDH is the aerobic route
       if (r.gene && knocked[r.gene]) { lb = 0; ub = 0; }
       if (id === 'BIO' && opts.minGrowth) lb = Math.max(lb, opts.minGrowth);
 
