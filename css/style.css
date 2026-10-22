@@ -941,3 +941,25 @@ section.page-section.active-section, footer.page-section.active-section {
 .pg-ai-out { margin-top: 0.8rem; line-height: 1.6; }
 .pg-ai-out:empty { display: none; }
 .pg-ai-src { display: block; margin-top: 0.4rem; color: var(--text-muted); font-size: 0.75rem; }
+
+/* Cell map */
+.pg-map { margin: 0 0 0.4rem; }
+.pg-svg { width: 100%; height: auto; display: block; background: rgba(255,255,255,0.02); border-radius: 12px; }
+.pg-edge { transition: stroke .3s, stroke-width .3s; }
+.pg-edge.active { stroke-dasharray: 12 8; animation: pgflow 0.9s linear infinite; }
+.pg-edge.off { stroke-dasharray: 4 6; }
+@keyframes pgflow { to { stroke-dashoffset: -20; } }
+.pg-node rect { fill: #0f1424; stroke: rgba(255,255,255,0.25); stroke-width: 1.5; transition: filter .3s; }
+.pg-node text { fill: var(--text-main); font-size: 13px; font-weight: 600; pointer-events: none; }
+.pg-bio rect { stroke: var(--accent-purple); fill: #1a1030; }
+.pg-tag { cursor: pointer; }
+.pg-tag rect { fill: #0f1424; stroke: var(--accent-teal); stroke-width: 1.2; }
+.pg-tag text { fill: var(--accent-teal); font-size: 12px; font-style: italic; pointer-events: none; }
+.pg-tag:hover rect, .pg-tag:focus-visible rect { fill: rgba(0,240,255,0.18); }
+.pg-tag:focus-visible { outline: none; }
+.pg-tag:focus-visible rect { stroke-width: 2.5; }
+.pg-tag.on rect { fill: rgba(255,70,90,0.25); stroke: #ff465a; }
+.pg-tag.on text { fill: #ff7a88; text-decoration: line-through; }
+.pg-map-legend { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 0.5rem; }
+@media (prefers-reduced-motion: reduce) { .pg-edge.active { animation: none; } }
+@media (max-width: 800px) { .pg-node text { font-size: 15px; } .pg-tag text { font-size: 14px; } }

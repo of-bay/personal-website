@@ -13,6 +13,8 @@
             essential: 'Cell dies without it', fine: 'Not needed here', slows: 'Slower growth',
             gene: 'Gene', reaction: 'Reaction', effect: 'Effect on growth',
             flux: 'flux', off: 'knocked out',
+            legend: 'Thicker, moving lines carry more material. Grey = idle. Red dashed = switched off. Click a gene tag on the map to switch it off or on.', food: 'food in', air: 'air in', out: 'out', mapLabel: 'Diagram of the cell showing how sugar flows through its chemical steps',
+            nodes: { glc: 'Glucose', g6p: 'Glucose-6-P', pyr: 'Pyruvate', accoa: 'Acetyl-CoA', nadh: 'NADH', atp: 'ATP', o2: 'Oxygen', lac: 'Lactate', ac: 'Acetate', etoh: 'Ethanol', bio: 'Biomass' },
             aiWorking: 'Thinking...', aiLocal: 'Built-in explainer (rule-based, not a language model).', aiGemini: 'Written by AI (Gemini) from the simulation numbers. A toy model, so do not read it as real biology.',
             hint: { glk: 'sugar doorman', gapA: 'sugar cutter', aceE: 'converter (air)', pflB: 'converter (no air)', gltA: 'furnace', cyoB: 'breathing engine', ldhA: 'lactate maker', pta: 'vinegar maker', adhE: 'alcohol maker' }
         },
@@ -24,6 +26,8 @@
             essential: 'Onsuz hücre ölür', fine: 'Burada gerekmiyor', slows: 'Daha yavaş büyüme',
             gene: 'Gen', reaction: 'Reaksiyon', effect: 'Büyümeye etkisi',
             flux: 'akı', off: 'devre dışı',
+            legend: 'Kalın ve hareketli çizgiler daha çok madde taşır. Gri = boşta. Kırmızı kesikli = kapalı. Haritadaki bir gen etiketine tıklayarak onu kapatıp açabilirsiniz.', food: 'besin girişi', air: 'hava girişi', out: 'dışarı', mapLabel: 'Şekerin hücrenin kimyasal adımlarından nasıl aktığını gösteren hücre diyagramı',
+            nodes: { glc: 'Glikoz', g6p: 'Glikoz-6-P', pyr: 'Piruvat', accoa: 'Asetil-KoA', nadh: 'NADH', atp: 'ATP', o2: 'Oksijen', lac: 'Laktat', ac: 'Asetat', etoh: 'Etanol', bio: 'Biyokütle' },
             aiWorking: 'Düşünüyor...', aiLocal: 'Yerleşik açıklayıcı (kural tabanlı, dil modeli değil).', aiGemini: 'Simülasyon sayılarından yapay zeka (Gemini) tarafından yazıldı. Oyuncak model olduğu için gerçek biyoloji olarak okumayın.',
             hint: { glk: 'şeker kapıcısı', gapA: 'şeker kesici', aceE: 'dönüştürücü (hava)', pflB: 'dönüştürücü (havasız)', gltA: 'fırın', cyoB: 'solunum motoru', ldhA: 'laktat üretici', pta: 'sirke üretici', adhE: 'alkol üretici' }
         }
@@ -260,6 +264,106 @@
     }
     $('pg-ai-btn').addEventListener('click', explain);
 
+    // ----- Cell map (SVG) -----
+    var SVGNS = 'http://www.w3.org/2000/svg', HW = 48, HH = 17;
+    var NODES = { glc: [100, 70], g6p: [260, 70], pyr: [430, 70], lac: [610, 70], accoa: [430, 210], ac: [610, 210],
+                  etoh: [610, 300], bio: [260, 210], nadh: [430, 330], atp: [260, 330], o2: [345, 420] };
+    var EDGES = [
+        { f: 'UPT_GLC', p: [4, 70, 50, 70] },
+        { f: 'HK', a: 'glc', b: 'g6p', gene: 'glk' },
+        { f: 'GLY', a: 'g6p', b: 'pyr', gene: 'gapA' },
+        { f: 'PDH', p: [385, 90, 385, 190], gene: 'aceE', lx: 352, ly: 140 },
+        { f: 'PFL', p: [415, 90, 415, 190], gene: 'pflB', lx: 448, ly: 140, side: 1 },
+        { f: 'LDH', a: 'pyr', b: 'lac', gene: 'ldhA', side: 1 },
+        { f: 'EX_LAC', p: [660, 70, 696, 70], side: 1 },
+        { f: 'PTA', a: 'accoa', b: 'ac', gene: 'pta', side: 1 },
+        { f: 'EX_AC', p: [660, 210, 696, 210], side: 1 },
+        { f: 'ADH', a: 'accoa', b: 'etoh', gene: 'adhE', side: 1 },
+        { f: 'EX_ETOH', p: [660, 300, 696, 300], side: 1 },
+        { f: 'TCA', a: 'accoa', b: 'nadh', gene: 'gltA', ly: 270 },
+        { f: 'OXP', a: 'nadh', b: 'atp', gene: 'cyoB', ly: 312 },
+        { f: 'UPT_O2', p: [345, 402, 345, 333] },
+        { f: 'BIO', a: 'accoa', b: 'bio', bio: 1 },
+        { f: 'BIO', a: 'g6p', b: 'bio', bio: 1 },
+        { f: 'BIO', a: 'atp', b: 'bio', bio: 1 }
+    ];
+    var mapEls = null;
+
+    function svgEl(name, attrs, parent) {
+        var e = document.createElementNS(SVGNS, name);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (parent) parent.appendChild(e);
+        return e;
+    }
+    function clip(a, b) {
+        var dx = b[0] - a[0], dy = b[1] - a[1], len = Math.sqrt(dx * dx + dy * dy);
+        var s = Math.min(dx ? HW / Math.abs(dx) : Infinity, dy ? HH / Math.abs(dy) : Infinity);
+        var ux = dx / len, uy = dy / len;
+        return [a[0] + s * dx + 3 * ux, a[1] + s * dy + 3 * uy, b[0] - s * dx - 6 * ux, b[1] - s * dy - 6 * uy];
+    }
+
+    function buildMap() {
+        var host = $('pg-map');
+        var svg = svgEl('svg', { viewBox: '0 0 700 450', role: 'img', 'class': 'pg-svg' });
+        host.appendChild(svg);
+        mapEls = { svg: svg, edges: [], tags: {}, nodes: {} };
+        EDGES.forEach(function (e) {
+            var p = e.p || clip(NODES[e.a], NODES[e.b]);
+            e.pts = p;
+            var g = svgEl('g', {}, svg);
+            var title = svgEl('title', {}, g);
+            var line = svgEl('line', { x1: p[0], y1: p[1], x2: p[2], y2: p[3], 'stroke-linecap': 'round', 'class': 'pg-edge' }, g);
+            var ux = p[2] - p[0], uy = p[3] - p[1], l = Math.sqrt(ux * ux + uy * uy); ux /= l; uy /= l;
+            var head = svgEl('polygon', { points: [p[2] + 7 * ux, p[3] + 7 * uy, p[2] - 3 * ux + 5 * -uy, p[3] - 3 * uy + 5 * ux, p[2] - 3 * ux - 5 * -uy, p[3] - 3 * uy - 5 * ux].join(' ') }, g);
+            mapEls.edges.push({ def: e, line: line, head: head, title: title });
+        });
+        // nodes and gene tags drawn above edges
+        Object.keys(NODES).concat([]).forEach(function (k) {
+            var n = NODES[k], g = svgEl('g', { 'class': 'pg-node' + (k === 'bio' ? ' pg-bio' : '') }, svg);
+            var r = svgEl('rect', { x: n[0] - HW, y: n[1] - HH, width: HW * 2, height: HH * 2, rx: 17 }, g);
+            var tx = svgEl('text', { x: n[0], y: n[1] + 4, 'text-anchor': 'middle' }, g);
+            mapEls.nodes[k] = { rect: r, text: tx };
+        });
+        EDGES.forEach(function (e, i) {
+            if (!e.gene || mapEls.tags[e.gene]) return;
+            var p = e.pts, x = e.lx || (p[0] + p[2]) / 2, y = e.ly || (p[1] + p[3]) / 2;
+            var g = svgEl('g', { 'class': 'pg-tag', role: 'button', tabindex: '0', transform: 'translate(' + x + ',' + y + ')' }, svg);
+            svgEl('rect', { x: -24, y: -10, width: 48, height: 20, rx: 10 }, g);
+            var tx = svgEl('text', { x: 0, y: 4, 'text-anchor': 'middle' }, g);
+            tx.textContent = e.gene;
+            mapEls.tags[e.gene] = g;
+            var toggle = function () { var gi = state.knockouts.indexOf(e.gene); if (gi >= 0) state.knockouts.splice(gi, 1); else state.knockouts.push(e.gene); render(); };
+            g.addEventListener('click', toggle);
+            g.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggle(); } });
+        });
+    }
+
+    function updateMap(mu, pct) {
+        var L = t(), max = 0;
+        Object.keys(mu.fluxes).forEach(function (id) { max = Math.max(max, Math.abs(mu.fluxes[id])); });
+        mapEls.svg.setAttribute('aria-label', L.mapLabel);
+        Object.keys(NODES).forEach(function (k) { mapEls.nodes[k].text.textContent = L.nodes[k]; });
+        mapEls.nodes.bio.rect.style.filter = 'drop-shadow(0 0 ' + Math.round(pct * 14) + 'px rgba(181,56,255,0.9))';
+        mapEls.edges.forEach(function (o) {
+            var e = o.def, f = Math.abs(mu.fluxes[e.f]), off = e.gene && state.knockouts.indexOf(e.gene) >= 0;
+            var active = f > 1e-6 && !off, w = active ? 2 + 8 * f / (max || 1) : 2;
+            var color = off ? '#ff465a' : !active ? '#475569' : e.bio ? '#b538ff' : e.side ? '#ffc857' : '#00f0ff';
+            o.line.setAttribute('stroke', color);
+            o.line.setAttribute('stroke-width', w.toFixed(1));
+            o.line.setAttribute('class', 'pg-edge' + (active ? ' active' : '') + (off ? ' off' : ''));
+            o.head.setAttribute('fill', color);
+            var rname = FBAModel.REACTIONS[e.f].name;
+            o.title.textContent = rname + ': ' + (off ? L.off : f.toFixed(1));
+        });
+        Object.keys(mapEls.tags).forEach(function (gene) {
+            var on = state.knockouts.indexOf(gene) >= 0, g = mapEls.tags[gene];
+            g.setAttribute('aria-pressed', String(on));
+            g.setAttribute('aria-label', gene + ' - ' + (L.hint[gene] || ''));
+            g.setAttribute('class', 'pg-tag' + (on ? ' on' : ''));
+        });
+        $('pg-map-legend').textContent = L.legend;
+    }
+
     function render() {
         renderGloss();
         if (!aiBusy) { $('pg-ai-out').textContent = ''; $('pg-ai-src').textContent = ''; }
@@ -283,6 +387,7 @@
         var res = FBAModel.analyse(state);
         var wt = res.wild.growth, mu = res.mutant;
         var pct = wt > 1e-9 ? Math.max(0, Math.min(1, mu.growth / wt)) : 0;
+        updateMap(mu, pct);
         $('pg-growth').textContent = L.growth + ': ' + Math.round(pct * 100) + '% ' + L.ofWt;
         $('pg-growth-bar').style.width = (pct * 100) + '%';
 
@@ -332,5 +437,6 @@
     document.addEventListener('langchange', render);
 
     buildChips();
+    buildMap();
     render();
 })();

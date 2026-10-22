@@ -75,7 +75,7 @@
     var fluxes = {};
     Object.keys(REACTIONS).forEach(function (id) {
       var val = res[id];
-      fluxes[id] = typeof val === 'number' && Math.abs(val) > 1e-9 ? val : 0;
+      fluxes[id] = res.feasible !== false && typeof val === 'number' && Math.abs(val) > 1e-9 ? val : 0;
     });
     return { feasible: res.feasible !== false, fluxes: fluxes, growth: fluxes.BIO, lactate: fluxes.EX_LAC };
   }
