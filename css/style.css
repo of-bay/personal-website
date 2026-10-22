@@ -801,3 +801,81 @@ section.page-section.active-section, footer.page-section.active-section {
     .logo a { gap: 0.65rem; }
     .logo { font-size: 1.25rem; }
 }
+
+/* Longer headline */
+.main-headline { font-size: 3.2rem; }
+@media (max-width: 900px) {
+    .main-headline { font-size: 2.1rem; }
+}
+
+/* Scrolling partner / affiliation strip */
+.partners {
+    padding: 1.75rem 0 2rem;
+    border-top: 1px solid var(--glass-border);
+    overflow: hidden;
+}
+
+.partners-label {
+    text-align: center;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.partners-viewport {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.partners-track {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    list-style: none;
+    animation: partners-scroll var(--duration, 45s) linear infinite;
+    will-change: transform;
+}
+
+.partners-viewport:hover .partners-track { animation-play-state: paused; }
+
+/* Logos are shown unaltered, on a small light tile so they read on the dark theme. */
+.partner {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    margin: 0 1.1rem;
+    padding: 0.35rem 0.75rem;
+    background: #fff;
+    border-radius: 8px;
+    opacity: 0.85;
+    transition: opacity 0.3s;
+}
+
+.partner:hover { opacity: 1; }
+
+.partner img {
+    display: block;
+    height: 28px;
+    width: auto;
+}
+
+.partner-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #111;
+}
+
+@keyframes partners-scroll {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(var(--shift, -50%), 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .partners-track { animation: none; width: auto; flex-wrap: wrap; justify-content: center; row-gap: 1.25rem; }
+    .partners-track [data-clone] { display: none; }
+    .partners-viewport { -webkit-mask-image: none; mask-image: none; }
+}

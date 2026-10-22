@@ -48,6 +48,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (toggle) toggle.addEventListener('click', () => setMenu(!menu.classList.contains('open')));
 
+
+    // ── Partner logo strip ─────────────────────────────────────
+    // Endless marquee: the list is cloned enough times to always cover the viewport,
+    // and the animation moves by exactly one list width, so the loop has no jump or gap.
+    // If a logo file is missing, the institution name is shown instead.
+    const track = document.getElementById('partners-track');
+    if (track) {
+        const viewport = track.parentElement;
+        const SPEED = 35; // pixels per second
+
+        const toText = (img) => {
+            const text = document.createElement('span');
+            text.className = 'partner-text';
+            text.textContent = img.alt;
+            img.replaceWith(text);
+        };
+        track.addEventListener('error', (e) => {
+            if (e.target.tagName === 'IMG') { toText(e.target); build(); }
+        }, true);
+        track.querySelectorAll('img').forEach((img) => {
+            if (img.complete && img.naturalWidth === 0) toText(img);
+        });
+
+        const originals = Array.from(track.children);
+
+        function build() {
+            track.querySelectorAll('[data-clone]').forEach((n) => n.remove());
+            const setWidth = track.scrollWidth; // width of one full list (margins included)
+            if (!setWidth) return;
+            const copies = Math.ceil(viewport.clientWidth / setWidth) + 1;
+            for (let i = 0; i < copies; i++) {
+                originals.forEach((li) => {
+                    const clone = li.cloneNode(true);
+                    clone.setAttribute('aria-hidden', 'true');
+                    clone.setAttribute('data-clone', '');
+                    clone.querySelector('img')?.setAttribute('alt', '');
+                    track.appendChild(clone);
+                });
+            }
+            track.style.setProperty('--shift', `-${setWidth}px`);
+            track.style.setProperty('--duration', `${(setWidth / SPEED).toFixed(1)}s`);
+        }
+
+        // Measure only once images have their real size.
+        if (document.readyState === 'complete') build();
+        else window.addEventListener('load', build);
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(build, 200);
+        });
+    }
+
     window.addEventListener('hashchange', route);
     route();
 });
