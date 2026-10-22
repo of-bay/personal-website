@@ -67,6 +67,7 @@
                 <li><a href="#about" data-i18n="nav.about">About</a></li>
                 <li><a href="#services" data-i18n="nav.services">Consulting</a></li>
                 <li><a href="#research" data-i18n="nav.research">Research</a></li>
+                <li><a href="#playground" data-i18n="nav.playground">Playground</a></li>
                 <li><a href="#publications" data-i18n="nav.publications">Publications</a></li>
                 <li><a href="#collaborators" data-i18n="nav.collaborators">Collaborators</a></li>
                 <li><a href="#tutorials" data-i18n="nav.tutorials">Teaching</a></li>
@@ -173,6 +174,71 @@
                 <p class="timeline-date" data-i18n="research.d2">Jan 2023 – Apr 2024</p>
                 <p data-i18n="research.p2">Reconstructed and analyzed genome-scale metabolic models for the synthetic mouse intestinal bacterial community (OMM19), investigating metabolic interactions and mechanisms driving dysbiosis.</p>
             </div>
+        </div>
+    </section>
+
+    <!-- Metabolic Playground -->
+    <section id="playground" class="section-container default-section page-section">
+        <h2 class="section-title" data-i18n="pg.title">Metabolic <span class="gradient-text">Playground</span></h2>
+        <p class="pg-intro" data-i18n="pg.intro">Switch genes off in a pretend cell and see whether it can still grow. No science background needed. It runs live in your browser.</p>
+        <div class="glass-card pg-how">
+            <h3 data-i18n="pg.howTitle">How it works</h3>
+            <p data-i18n="pg.how0">Think of a cell as a tiny kitchen. It takes in sugar, cooks it through a chain of steps, and uses the energy and ingredients to build a copy of itself. Each step is done by a worker called an enzyme, and each worker is built from instructions called a gene. Here you can fire workers one by one and see what happens. A computer works out the best way for the kitchen to run, using the same kind of maths scientists use on real cells.</p>
+            <ol>
+                <li data-i18n="pg.how1"><strong>Pick the surroundings:</strong> is there air (oxygen)? How much sugar is on the menu?</li>
+                <li data-i18n="pg.how2"><strong>Fire a worker:</strong> click a gene to switch it off (it turns red). Can the cell cope without it?</li>
+                <li data-i18n="pg.how3"><strong>See the effect:</strong> the top bar shows how well the cell grows compared with a healthy one. The bars below show how busy each step is.</li>
+            </ol>
+        </div>
+        <p class="pg-note" data-i18n="pg.note">Educational toy model: a simplified cartoon of a cell, not a real organism.</p>
+
+        <div class="pg-grid">
+            <div class="glass-card pg-controls">
+                <h3 data-i18n="pg.genes">Genes (click to switch off)</h3>
+                <div class="pg-chips" id="pg-chips" role="group"></div>
+
+                <h3 data-i18n="pg.env">Environment</h3>
+                <div class="pg-presets" role="group">
+                    <button type="button" class="pg-btn" id="pg-aerobic" data-i18n="pg.aerobic">Aerobic</button>
+                    <button type="button" class="pg-btn" id="pg-anaerobic" data-i18n="pg.anaerobic">Anaerobic</button>
+                </div>
+                <label class="pg-label" for="pg-glc"><span data-i18n="pg.glc">Glucose supply</span>: <output id="pg-glc-out">10</output></label>
+                <input type="range" id="pg-glc" min="1" max="10" step="1" value="10">
+                <label class="pg-label" for="pg-o2"><span data-i18n="pg.o2">Oxygen supply</span>: <output id="pg-o2-out">20</output></label>
+                <input type="range" id="pg-o2" min="0" max="20" step="1" value="20">
+
+                <h3 data-i18n="pg.goal">Goal</h3>
+                <div class="pg-presets" role="group">
+                    <button type="button" class="pg-btn" id="pg-goal-growth" data-i18n="pg.goalGrowth">Max growth</button>
+                    <button type="button" class="pg-btn" id="pg-goal-lac" data-i18n="pg.goalLac">Make lactate</button>
+                </div>
+                <button type="button" class="pg-btn pg-reset" id="pg-reset" data-i18n="pg.reset">Reset</button>
+            </div>
+
+            <div class="glass-card pg-results">
+                <div class="pg-readout" aria-live="polite">
+                    <div class="pg-big" id="pg-growth">-</div>
+                    <div class="pg-bar"><span id="pg-growth-bar"></span></div>
+                    <p id="pg-verdict"></p>
+                </div>
+                <h3 data-i18n="pg.flux">How busy is each step?</h3>
+                <div id="pg-flux" class="pg-flux"></div>
+                <h3 data-i18n="pg.screen">Which genes can the cell not live without?</h3>
+                <div id="pg-screen" class="pg-screen"></div>
+                <div class="pg-ai">
+                    <h3 data-i18n="pg.aiTitle">What does this mean?</h3>
+                    <p class="pg-ai-note" data-i18n="pg.aiNote">An AI reads the simulation result and explains it in plain words.</p>
+                    <button type="button" class="pg-btn" id="pg-ai-btn" data-i18n="pg.aiBtn">Explain this result</button>
+                    <div id="pg-ai-out" class="pg-ai-out" aria-live="polite"></div>
+                    <small id="pg-ai-src" class="pg-ai-src"></small>
+                </div>
+            </div>
+        </div>
+        <div class="glass-card pg-glossary">
+            <h3 data-i18n="pg.glossTitle">What are these molecules? (in everyday words)</h3>
+            <dl id="pg-gloss"></dl>
+            <h3 data-i18n="pg.glossGenes">What does each gene do?</h3>
+            <dl id="pg-gloss-genes"></dl>
         </div>
     </section>
 
@@ -287,8 +353,11 @@
         </div>
     </section>
 
+    <script src="js/vendor/lp-solver.js"></script>
+    <script src="js/fba-model.js"></script>
     <script src="js/i18n.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/playground.js"></script>
     <script src="js/analytics.js" defer></script>
 </body>
 </html>

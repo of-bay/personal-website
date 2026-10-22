@@ -1,0 +1,5 @@
+name = "bay-ai-explainer"
+main = "gemini-worker.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+preview_urls = false
