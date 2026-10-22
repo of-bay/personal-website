@@ -54,6 +54,7 @@
     </script>
 </head>
 <body>
+    <canvas id="hero-net" aria-hidden="true"></canvas>
 
     <!-- Particle/Glow Background -->
     <div class="background-glow pos-1"></div>
@@ -90,21 +91,17 @@
         <div class="hero-content">
             <h2 class="sub-headline" data-i18n="hero.sub">Bioinformatics · Metabolic Modeling · Functional Genomics</h2>
             <h1 class="main-headline" data-i18n="hero.title">Metabolic models that explain <span class="gradient-text">how cells work</span></h1>
-            <p class="hero-lead" data-i18n="hero.lead">Computational biology at the intersection of metabolism and genomics: genome-scale metabolic models and RNA-seq analysis for parasites, gut microbes and other biological systems.</p>
+            <p class="hero-lead" data-i18n="hero.lead">Cells turn food into energy and building blocks through thousands of chemical reactions. A genome-scale metabolic model is a computer map of all these reactions, built from an organism's DNA. It lets researchers test on screen what happens when a gene is switched off, a drug is added or the diet changes, before running an experiment. It works for microbes, parasites, gut bacteria and human cells.</p>
+            <ul class="hero-apps" aria-label="Applications">
+                <li data-i18n="hero.app1">Disease mechanisms</li>
+                <li data-i18n="hero.app2">Drug discovery</li>
+                <li data-i18n="hero.app3">Gut microbiome</li>
+                <li data-i18n="hero.app4">Biotechnology</li>
+                <li data-i18n="hero.app5">Nutrition &amp; diet (planned)</li>
+            </ul>
             <div class="hero-cta">
                 <a href="#contact" class="btn-primary" data-i18n="hero.cta1">Get in Touch</a>
                 <a href="#publications" class="btn-secondary" data-i18n="hero.cta2">View Publications</a>
-            </div>
-        </div>
-        <div class="hero-visual">
-            <div class="glass-card floating-card delay-1">
-                <p data-i18n="hero.card1">🧬 Transcriptomics</p>
-            </div>
-            <div class="glass-card floating-card delay-2 highlight">
-                <p data-i18n="hero.card2">⚡ Metabolic Modeling</p>
-            </div>
-            <div class="glass-card floating-card delay-3">
-                <p data-i18n="hero.card3">📊 Functional Genomics</p>
             </div>
         </div>
     </header>
@@ -142,21 +139,69 @@
     <section id="services" class="section-container alternate-bg page-section">
         <h2 class="section-title" data-i18n="services.title">Consulting <span class="gradient-text">Services</span></h2>
         <div class="services-grid">
-            <div class="service-card glass-card">
-                <div class="icon">🔬</div>
-                <h3 data-i18n="services.h1">Metabolic Modeling</h3>
-                <p data-i18n="services.p1">Genome-scale metabolic network reconstruction, manual curation, and constraint-based modeling for eukaryotic and prokaryotic systems.</p>
-            </div>
-            <div class="service-card glass-card">
-                <div class="icon">🧬</div>
-                <h3 data-i18n="services.h2">Functional Genomics</h3>
-                <p data-i18n="services.p2">Data analysis pipelines for bulk RNA-seq, single-cell RNA-seq, and spatial transcriptomics to extract meaningful biological networks.</p>
-            </div>
-            <div class="service-card glass-card">
-                <div class="icon">📊</div>
-                <h3 data-i18n="services.h3">Data Analysis &amp; Pipeline Dev</h3>
-                <p data-i18n="services.p3">Custom bioinformatics tool development and high-throughput biological data analysis tailored for your project's needs.</p>
-            </div>
+            <details class="service-card glass-card" id="svc1">
+                <summary>
+                    <div class="icon">🔬</div>
+                    <h3 data-i18n="services.h1">Metabolic Modeling</h3>
+                    <p data-i18n="services.p1">Genome-scale metabolic network reconstruction, manual curation, and constraint-based modeling for eukaryotic and prokaryotic systems.</p>
+                    <span class="svc-more"><span class="m-closed" data-i18n="services.more">Show details</span><span class="m-open" data-i18n="services.less">Hide details</span></span>
+                </summary>
+                <div class="svc-body">
+                    <h4 data-i18n="svc1.hc">What it covers</h4>
+                    <ul>
+                        <li data-i18n="svc1.c1">Building a metabolic model from a genome: draft reconstruction, manual curation and gap filling.</li>
+                        <li data-i18n="svc1.c2">Simulations such as flux balance analysis: growth, essential genes and reactions, effects of nutrients and drugs.</li>
+                        <li data-i18n="svc1.c3">Models tuned with RNA-seq data, and community models for several species together.</li>
+                    </ul>
+                    <h4 data-i18n="svc1.hu">Typical applications</h4>
+                    <p data-i18n="svc1.u">Drug-target discovery, understanding disease metabolism, gut microbiome interactions, biotechnology and strain design, and nutrition and diet research.</p>
+                    <h4 data-i18n="svc1.hi">You provide → you get</h4>
+                    <p data-i18n="svc1.i">A genome, or an existing model, plus growth data if available &rarr; a curated model file (SBML), simulation results, figures and clear documentation.</p>
+                    <a href="#contact" class="btn-secondary" data-i18n="services.cta">Discuss a project</a>
+                </div>
+            </details>
+            <details class="service-card glass-card" id="svc2">
+                <summary>
+                    <div class="icon">🧬</div>
+                    <h3 data-i18n="services.h2">Functional Genomics</h3>
+                    <p data-i18n="services.p2">Data analysis pipelines for bulk RNA-seq, single-cell RNA-seq, and spatial transcriptomics to extract meaningful biological networks.</p>
+                    <span class="svc-more"><span class="m-closed" data-i18n="services.more">Show details</span><span class="m-open" data-i18n="services.less">Hide details</span></span>
+                </summary>
+                <div class="svc-body">
+                    <h4 data-i18n="svc2.hc">What it covers</h4>
+                    <ul>
+                        <li data-i18n="svc2.c1">Bulk RNA-seq: quality control, quantification, differential expression and pathway enrichment.</li>
+                        <li data-i18n="svc2.c2">Single-cell and spatial transcriptomics: clustering, cell types and spatial patterns.</li>
+                        <li data-i18n="svc2.c3">Gene networks, and linking expression data to metabolic models.</li>
+                    </ul>
+                    <h4 data-i18n="svc2.hu">Typical applications</h4>
+                    <p data-i18n="svc2.u">Finding which genes and pathways change between conditions, diseased and healthy tissue, or treated and untreated samples.</p>
+                    <h4 data-i18n="svc2.hi">You provide → you get</h4>
+                    <p data-i18n="svc2.i">Raw reads or a count table, plus sample information &rarr; a reproducible analysis, result tables, figures and a short report.</p>
+                    <a href="#contact" class="btn-secondary" data-i18n="services.cta">Discuss a project</a>
+                </div>
+            </details>
+            <details class="service-card glass-card" id="svc3">
+                <summary>
+                    <div class="icon">📊</div>
+                    <h3 data-i18n="services.h3">Data Analysis &amp; Pipeline Dev</h3>
+                    <p data-i18n="services.p3">Custom bioinformatics tool development and high-throughput biological data analysis tailored for your project's needs.</p>
+                    <span class="svc-more"><span class="m-closed" data-i18n="services.more">Show details</span><span class="m-open" data-i18n="services.less">Hide details</span></span>
+                </summary>
+                <div class="svc-body">
+                    <h4 data-i18n="svc3.hc">What it covers</h4>
+                    <ul>
+                        <li data-i18n="svc3.c1">Custom tools and scripts in Python, R and Unix for your own data.</li>
+                        <li data-i18n="svc3.c2">Automated, reproducible workflows for high-throughput biological data.</li>
+                        <li data-i18n="svc3.c3">Training for your team so that the analysis can be repeated in-house.</li>
+                    </ul>
+                    <h4 data-i18n="svc3.hu">Typical applications</h4>
+                    <p data-i18n="svc3.u">Replacing manual spreadsheet work, standardising a lab's analysis, or building a small tool or dashboard around a research question.</p>
+                    <h4 data-i18n="svc3.hi">You provide → you get</h4>
+                    <p data-i18n="svc3.i">Your dataset and the question you want answered &rarr; documented code, results and a hand-over session.</p>
+                    <a href="#contact" class="btn-secondary" data-i18n="services.cta">Discuss a project</a>
+                </div>
+            </details>
         </div>
     </section>
 
@@ -189,6 +234,25 @@
                 <li data-i18n="pg.how2"><strong>Fire a worker:</strong> click a gene to switch it off (it turns red). Can the cell cope without it?</li>
                 <li data-i18n="pg.how3"><strong>See the effect:</strong> the top bar shows how well the cell grows compared with a healthy one. The bars below show how busy each step is.</li>
             </ol>
+        </div>
+        <div class="glass-card pg-stories">
+            <h3 data-i18n="pg.storiesTitle">Try a guided story</h3>
+            <p class="pg-stories-note" data-i18n="pg.storiesNote">Pick a story. It sets up the cell for you and explains what to look at, step by step.</p>
+            <div class="pg-story-list" id="pg-story-list" role="group"></div>
+            <div class="pg-story" id="pg-story" hidden aria-live="polite">
+                <img id="pg-story-img" class="pg-story-img" alt="" width="960" height="540" loading="lazy">
+                <div class="pg-story-body">
+                <div class="pg-story-top"><div class="pg-story-step" id="pg-story-step"></div><div class="pg-story-dots" id="pg-story-dots" aria-hidden="true"></div></div>
+                <h4 id="pg-story-title"></h4>
+                <div class="pg-story-chips" id="pg-story-chips"></div>
+                <p id="pg-story-body"></p>
+                <div class="pg-story-nav">
+                    <button type="button" class="pg-btn" id="pg-story-prev"></button>
+                    <button type="button" class="pg-btn" id="pg-story-next"></button>
+                    <button type="button" class="pg-btn pg-story-exit" id="pg-story-exit"></button>
+                </div>
+                </div>
+            </div>
         </div>
         <p class="pg-note" data-i18n="pg.note">Educational toy model: a simplified cartoon of a cell, not a real organism.</p>
 
@@ -241,6 +305,69 @@
                 </div>
             </div>
         </div>
+        <div class="glass-card pg-real" id="pg-real">
+            <h3 data-pro="pgr.title"></h3>
+            <p class="pgr-intro" data-pro="pgr.intro"></p>
+            <div class="pgr-grid">
+                <div class="pgr-controls">
+                    <div class="pg-presets" role="group">
+                        <button type="button" class="pg-btn" id="pgr-aerobic" data-pro="pgr.aerobic"></button>
+                        <button type="button" class="pg-btn" id="pgr-anaerobic" data-pro="pgr.anaerobic"></button>
+                    </div>
+                    <label class="pg-label" for="pgr-glc"><span data-pro="pgr.glc"></span>: <output id="pgr-glc-out">10</output> mmol/gDW/h</label>
+                    <input type="range" id="pgr-glc" min="2" max="20" step="1" value="10">
+                    <label class="pg-label" for="pgr-gene" data-pro="pgr.gene"></label>
+                    <div class="pgr-add">
+                        <input type="text" id="pgr-gene" list="pgr-genes" autocomplete="off" spellcheck="false" placeholder="adhE">
+                        <button type="button" class="pg-btn" id="pgr-add" data-pro="pgr.add"></button>
+                    </div>
+                    <datalist id="pgr-genes"></datalist>
+                    <p class="pgr-msg" id="pgr-msg" aria-live="polite"></p>
+                    <div class="pgr-try"><span data-pro="pgr.try"></span> <span id="pgr-try"></span></div>
+                    <div id="pgr-chips" class="pg-chips"></div>
+                    <button type="button" class="pg-btn pg-reset" id="pgr-reset" data-pro="pgr.reset"></button>
+                </div>
+                <div class="pgr-results">
+                    <p class="pgr-status" id="pgr-status" aria-live="polite"></p>
+                    <div class="pg-big" id="pgr-growth"></div>
+                    <div class="pg-bar"><span id="pgr-bar"></span></div>
+                    <p id="pgr-verdict" class="pgr-verdict"></p>
+                    <h4 data-pro="pgr.cmp"></h4>
+                    <div id="pgr-compare" class="pgr-compare"></div>
+                    <h4 data-pro="pgr.top"></h4>
+                    <div id="pgr-top" class="pgr-top"></div>
+                    <h4 data-pro="pgr.screen"></h4>
+                    <button type="button" class="pg-btn" id="pgr-screen-btn" data-pro="pgr.run"></button>
+                    <div class="pg-bar pgr-prog" id="pgr-prog" hidden><span id="pgr-prog-bar"></span></div>
+                    <div id="pgr-screen" class="pgr-screen"></div>
+                </div>
+            </div>
+            <p class="pgr-cite" data-pro="pgr.cite"></p>
+        </div>
+
+        <details class="glass-card pg-methods" id="pg-methods">
+            <summary data-pro="pgm.title"></summary>
+            <div id="pgm-body" class="pgm-body"></div>
+        </details>
+
+        <div class="glass-card pg-export" id="pg-export">
+            <h3 data-pro="pge.title"></h3>
+            <p class="pge-note" data-pro="pge.note"></p>
+            <div class="pge-btns">
+                <button type="button" class="pg-btn" id="pge-svg" data-pro="pge.svg"></button>
+                <button type="button" class="pg-btn" id="pge-png" data-pro="pge.png"></button>
+                <button type="button" class="pg-btn" id="pge-csv" data-pro="pge.csv"></button>
+                <button type="button" class="pg-btn" id="pge-sbml" data-pro="pge.sbml"></button>
+            </div>
+            <h4 data-pro="pge.cite"></h4>
+            <pre id="pge-cite" class="pge-cite"></pre>
+            <div class="pge-btns">
+                <button type="button" class="pg-btn" id="pge-copy" data-pro="pge.copy"></button>
+                <button type="button" class="pg-btn" id="pge-bib" data-pro="pge.bib"></button>
+                <span id="pge-done" class="pge-done" aria-live="polite"></span>
+            </div>
+        </div>
+
         <div class="glass-card pg-glossary">
             <h3 data-i18n="pg.glossTitle">What are these molecules? (in everyday words)</h3>
             <dl id="pg-gloss"></dl>
@@ -364,6 +491,10 @@
     <script src="js/i18n.js"></script>
     <script src="js/main.js"></script>
     <script src="js/playground.js"></script>
+    <script src="js/real-model.js"></script>
+    <script src="js/playground-pro.js"></script>
+    <script src="js/hero-network.js"></script>
+    <script src="js/interactive.js"></script>
     <script src="js/analytics.js" defer></script>
 </body>
 </html>

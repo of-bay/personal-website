@@ -6,7 +6,7 @@
 
     var T = {
         en: {
-            growth: 'Growth', ofWt: 'of wild type', noGrowth: 'No growth', growthLbl: 'Growth',
+            growth: 'Growth', ofWt: 'of a healthy cell', noGrowth: 'No growth', growthLbl: 'Growth',
             dead: 'The cell cannot grow at all in this situation.',
             ok: 'No problem: the cell grows just as well.', reduced: 'The cell still grows, but more slowly.',
             lacMade: 'Lactate output', lacFail: 'The cell cannot make lactate and stay alive here. Try other genes or less oxygen.',
@@ -20,7 +20,7 @@
             hint: { glk: 'sugar doorman', gapA: 'sugar cutter', aceE: 'converter (air)', pflB: 'converter (no air)', gltA: 'furnace', cyoB: 'breathing engine', ldhA: 'lactate maker', pta: 'vinegar maker', adhE: 'alcohol maker' }
         },
         tr: {
-            growth: 'Büyüme', ofWt: '(yabanıl tipe göre)', noGrowth: 'Büyüme yok',
+            growth: 'Büyüme', ofWt: '(sağlıklı hücreye göre)', noGrowth: 'Büyüme yok',
             dead: 'Hücre bu durumda hiç büyüyemiyor.',
             ok: 'Sorun yok: hücre eskisi kadar iyi büyüyor.', reduced: 'Hücre hâlâ büyüyor ama daha yavaş.',
             lacMade: 'Laktat üretimi', lacFail: 'Hücre canlı kalarak laktat üretemiyor. Başka bir gen veya daha oksijensiz koşullar deneyin.',
@@ -28,10 +28,10 @@
             gene: 'Gen', reaction: 'Reaksiyon', effect: 'Büyümeye etkisi',
             flux: 'akı', off: 'devre dışı',
             pdfNote: 'Yazdırma penceresi açılır: "PDF olarak kaydet" seçin.',
-            legend: 'Kalın ve hareketli çizgiler daha çok madde taşır. Gri = boşta. Kırmızı kesikli = kapalı. Haritadaki bir gen etiketine tıklayarak onu kapatıp açabilirsiniz.', food: 'besin girişi', air: 'hava girişi', out: 'dışarı', mapLabel: 'Şekerin hücrenin kimyasal adımlarından nasıl aktığını gösteren hücre diyagramı',
+            legend: 'Kalın ve hareketli çizgiler daha çok madde taşır. Gri = boşta. Kırmızı kesikli = kapalı. Haritadaki bir gen etiketine tıklayarak onu kapatıp açabilirsiniz.', food: 'besin girişi', air: 'oksijen girişi', out: 'dışarı', mapLabel: 'Şekerin hücrenin kimyasal adımlarından nasıl aktığını gösteren hücre diyagramı',
             nodes: { glc: 'Glikoz', g6p: 'Glikoz-6-P', pyr: 'Piruvat', accoa: 'Asetil-KoA', nadh: 'NADH', atp: 'ATP', o2: 'Oksijen', lac: 'Laktat', ac: 'Asetat', etoh: 'Etanol', bio: 'Biyokütle' },
             aiWorking: 'Düşünüyor...', aiLocal: 'Yerleşik açıklayıcı (kural tabanlı, dil modeli değil).', aiGemini: 'Simülasyon sayılarından yapay zeka (Gemini) tarafından yazıldı. Oyuncak model olduğu için gerçek biyoloji olarak okumayın.',
-            hint: { glk: 'şeker kapıcısı', gapA: 'şeker kesici', aceE: 'dönüştürücü (hava)', pflB: 'dönüştürücü (havasız)', gltA: 'fırın', cyoB: 'solunum motoru', ldhA: 'laktat üretici', pta: 'sirke üretici', adhE: 'alkol üretici' }
+            hint: { glk: 'şeker kapıcısı', gapA: 'şeker kesici', aceE: 'dönüştürücü (oksijenli)', pflB: 'dönüştürücü (oksijensiz)', gltA: 'fırın', cyoB: 'solunum motoru', ldhA: 'laktat üretici', pta: 'sirke üretici', adhE: 'alkol üretici' }
         }
     };
     function t() { return T[(window.i18n && window.i18n.lang) === 'tr' ? 'tr' : 'en']; }
@@ -150,7 +150,7 @@
  ],
  [
   "Oksijen",
-  "Soluduğumuz hava. Hücrenin yiyeceği çok daha tam yakmasını ve çok daha fazla enerji üretmesini sağlar."
+  "Soluduğumuz can verici gaz. Hücrenin yiyeceği çok daha tam yakmasını ve çok daha fazla enerji üretmesini sağlar."
  ],
  [
   "Laktat",
@@ -175,8 +175,8 @@
 ], gene: {
  "glk": "Kapıcı: şekeri kullanılabilir hale getirmek için etiketler.",
  "gapA": "Şeker kesici: şekeri ikiye böler ve biraz enerji kazanır.",
- "aceE": "Dönüştürücü: hava varken piruvatı yapı taşına çevirir.",
- "pflB": "Havasız dönüştürücü: aynı işi oksijensiz yapar. Oksijen onu kapatır.",
+ "aceE": "Dönüştürücü: oksijen varken piruvatı yapı taşına çevirir.",
+ "pflB": "Oksijensiz dönüştürücü: aynı işi oksijensiz yapar. Oksijen onu kapatır.",
  "gltA": "Fırın: yapı taşından ekstra enerji sıkıp çıkarır.",
  "cyoB": "Solunum motoru: oksijenle teslimatları bol enerjiye çevirir.",
  "ldhA": "Laktat üretici: oksijen yokken artan yükten kurtulur.",
@@ -199,7 +199,7 @@
     var PNAME = { en: { lactate: 'lactate (the acid muscles make)', acetate: 'acetate (vinegar)', ethanol: 'ethanol (alcohol)', formate: 'formate' },
                   tr: { lactate: 'laktat (kasların ürettiği asit)', acetate: 'asetat (sirke)', ethanol: 'etanol (alkol)', formate: 'format' } };
     var WORKER = { en: { glk: 'sugar doorman', gapA: 'sugar cutter', aceE: 'air-needing converter', pflB: 'no-air converter', gltA: 'furnace', cyoB: 'breathing engine', ldhA: 'lactate maker', pta: 'vinegar maker', adhE: 'alcohol maker' },
-                   tr: { glk: 'şeker kapıcısı', gapA: 'şeker kesici', aceE: 'havalı dönüştürücü', pflB: 'havasız dönüştürücü', gltA: 'fırın', cyoB: 'solunum motoru', ldhA: 'laktat üretici', pta: 'sirke üretici', adhE: 'alkol üretici' } };
+                   tr: { glk: 'şeker kapıcısı', gapA: 'şeker kesici', aceE: 'oksijenli dönüştürücü', pflB: 'oksijensiz dönüştürücü', gltA: 'fırın', cyoB: 'solunum motoru', ldhA: 'laktat üretici', pta: 'sirke üretici', adhE: 'alkol üretici' } };
 
     function facts() {
         var res = FBAModel.analyse(state), mu = res.mutant, wt = res.wild.growth;
@@ -223,7 +223,7 @@
         var air = f.oxygen > 0;
         var names = f.knockouts.map(function (g) { return g + ' (' + W[g] + ')'; }).join(', ');
         if (tr) {
-            out.push(air ? 'Bu hücre havalı (oksijenli) bir ortamda yaşıyor.' : 'Bu hücre havasız bir ortamda yaşıyor, yani nefes alamıyor.');
+            out.push(air ? 'Bu hücre oksijenli bir ortamda yaşıyor.' : 'Bu hücre oksijensiz bir ortamda yaşıyor, yani nefes alamıyor.');
             out.push(f.knockouts.length ? 'Şu işçileri işten çıkardınız: ' + names + '.' : 'Hiçbir işçiyi işten çıkarmadınız, hücre tam kadro çalışıyor.');
             if (f.growthPct === 0) out.push('Sonuç: hücre hiç büyüyemiyor, çünkü gerekli bir adım eksik.');
             else if (f.growthPct >= 99) out.push('Sonuç: hücre sağlıklı bir hücre kadar iyi büyüyor; kapattığınız işçiler bu ortamda gerekmiyor ya da başka yol buluyor.');
@@ -268,7 +268,7 @@
 
     var RN = {
         en: { UPT_GLC: 'Sugar coming in', UPT_O2: 'Air coming in', HK: 'Tag the sugar', GLY: 'Cut sugar in half', PDH: 'Make building brick (with air)', PFL: 'Make building brick (no air)', TCA: 'Furnace: squeeze out energy', OXP: 'Breathe: turn deliveries into energy', LDH: 'Make lactate', PTA: 'Make acetate', ADH: 'Make ethanol', EX_LAC: 'Lactate released', EX_AC: 'Acetate released', EX_ETOH: 'Ethanol released', EX_FOR: 'Formate released', ATPM: 'Basic upkeep energy', BIO: 'Grow: build a new cell' },
-        tr: { UPT_GLC: 'Gelen şeker', UPT_O2: 'Gelen hava', HK: 'Şekeri etiketle', GLY: 'Şekeri ikiye böl', PDH: 'Yapı taşı üret (havalı)', PFL: 'Yapı taşı üret (havasız)', TCA: 'Fırın: enerji sıkıp çıkar', OXP: 'Solunum: teslimatları enerjiye çevir', LDH: 'Laktat üret', PTA: 'Asetat üret', ADH: 'Etanol üret', EX_LAC: 'Salınan laktat', EX_AC: 'Salınan asetat', EX_ETOH: 'Salınan etanol', EX_FOR: 'Salınan format', ATPM: 'Temel bakım enerjisi', BIO: 'Büyü: yeni hücre yap' }
+        tr: { UPT_GLC: 'Gelen şeker', UPT_O2: 'Gelen oksijen', HK: 'Şekeri etiketle', GLY: 'Şekeri ikiye böl', PDH: 'Yapı taşı üret (oksijenli)', PFL: 'Yapı taşı üret (oksijensiz)', TCA: 'Fırın: enerji sıkıp çıkar', OXP: 'Solunum: teslimatları enerjiye çevir', LDH: 'Laktat üret', PTA: 'Asetat üret', ADH: 'Etanol üret', EX_LAC: 'Salınan laktat', EX_AC: 'Salınan asetat', EX_ETOH: 'Salınan etanol', EX_FOR: 'Salınan format', ATPM: 'Temel bakım enerjisi', BIO: 'Büyü: yeni hücre yap' }
     };
     function rname(id) { return RN[(window.i18n && window.i18n.lang) === 'tr' ? 'tr' : 'en'][id] || FBAModel.REACTIONS[id].name; }
 
@@ -447,8 +447,8 @@
   "date": "Oluşturulma",
   "inputs": "Sizin seçtikleriniz (girdiler)",
   "env": "Ortam",
-  "air": "Havalı (oksijen kaynağı %d / 20)",
-  "noair": "Havasız",
+  "air": "Oksijenli (oksijen kaynağı %d / 20)",
+  "noair": "Oksijensiz",
   "sugar": "Şeker kaynağı",
   "of10": "/ 10",
   "goal": "Hedef",
@@ -615,8 +615,253 @@
     }
     $('pg-pdf-btn').addEventListener('click', printReport);
 
+    // ----- Guided stories -----
+    var STORIES = [
+ {
+  "id": "air",
+  "t": {
+   "en": "Why do we need air?",
+   "tr": "Neden oksijene ihtiyacımız var?"
+  },
+  "b": {
+   "en": "Compare a cell with and without oxygen.",
+   "tr": "Oksijenli ve oksijensiz hücreyi karşılaştırın."
+  },
+  "steps": [
+   {
+    "o": 20,
+    "g": 10,
+    "ko": [],
+    "goal": "growth",
+    "t": {
+     "en": "Meet a healthy cell",
+     "tr": "Sağlıklı hücreyle tanışın"
+    },
+    "x": {
+     "en": "This tiny cell has plenty of sugar and plenty of air. Look at the map: sugar flows in from the left and ends up in the purple Biomass box, which means the cell is growing. The thick line through the breathing engine (cyoB) shows it is burning food with oxygen.",
+     "tr": "Bu minik hücrenin bol şekeri ve bol oksijeni var. Haritaya bakın: şeker soldan girip mor Biyokütle kutusuna ulaşıyor, yani hücre büyüyor. Solunum motorundan (cyoB) geçen kalın çizgi, yiyeceği oksijenle yaktığını gösteriyor."
+    }
+   },
+   {
+    "o": 0,
+    "g": 10,
+    "ko": [],
+    "goal": "growth",
+    "t": {
+     "en": "Now take the air away",
+     "tr": "Şimdi oksijeni alın"
+    },
+    "x": {
+     "en": "Without oxygen the breathing engine goes quiet. The cell survives by fermentation, a half-burn, but it grows only about {abs}% as fast as before. It also throws out waste (ethanol, acetate, formate). Burning food fully with air gives much more energy.",
+     "tr": "Oksijen olmayınca solunum motoru susuyor. Hücre fermantasyonla, yani yarım yanmayla hayatta kalıyor ama eskisinin yalnızca yaklaşık %{abs} hızında büyüyor. Ayrıca atık (etanol, asetat, format) fırlatıyor. Yiyeceği oksijenle tam yakmak çok daha fazla enerji verir."
+    }
+   },
+   {
+    "o": 20,
+    "g": 10,
+    "ko": [
+     "cyoB"
+    ],
+    "goal": "growth",
+    "t": {
+     "en": "Air is there, but the engine is fired",
+     "tr": "Oksijen var ama motor işten çıkarıldı"
+    },
+    "x": {
+     "en": "Here air is plentiful but the breathing engine (cyoB) is switched off. Growth falls to {abs}%. Air also shuts down the cell's no-air backup route, so the cell is stuck. Lesson: having a resource is not enough, the cell needs the machinery to use it.",
+     "tr": "Burada oksijen bol ama solunum motoru (cyoB) kapalı. Büyüme %{abs} seviyesine düşüyor. Oksijen, hücrenin oksijensiz yedek yolunu da kapattığı için hücre sıkışıyor. Ders: bir kaynağa sahip olmak yetmez, onu kullanacak makineye de ihtiyaç var."
+    }
+   }
+  ]
+ },
+ {
+  "id": "ferm",
+  "t": {
+   "en": "Yogurt, bread and beer",
+   "tr": "Yoğurt, ekmek ve bira"
+  },
+  "b": {
+   "en": "How cells without air make useful products.",
+   "tr": "Oksijensiz hücreler faydalı ürünleri nasıl yapar."
+  },
+  "steps": [
+   {
+    "o": 0,
+    "g": 10,
+    "ko": [],
+    "goal": "growth",
+    "t": {
+     "en": "Fermentation: a cell without air",
+     "tr": "Fermantasyon: oksijensiz hücre"
+    },
+    "x": {
+     "en": "No air here. The cell still grows by fermentation, and it releases leftovers: ethanol (the alcohol in beer, and the bubbles in bread dough come from similar chemistry) and acetate (vinegar). Humans have used fermenting microbes for thousands of years.",
+     "tr": "Burada oksijen yok. Hücre fermantasyonla yine de büyüyor ve artıklarını dışarı veriyor: etanol (biradaki alkol; ekmek hamurunun kabarması da benzer kimyadan gelir) ve asetat (sirke). İnsanlar binlerce yıldır fermantasyon yapan mikropları kullanıyor."
+    }
+   },
+   {
+    "o": 0,
+    "g": 10,
+    "ko": [],
+    "goal": "lactate",
+    "t": {
+     "en": "Ask the cell to make lactate (yogurt acid)",
+     "tr": "Hücreden laktat (yoğurt asidi) isteyin"
+    },
+    "x": {
+     "en": "The goal is now lactate, the acid that makes yogurt sour. The cell gives up a little growth (it grows at {abs}% of the speed of a healthy cell with oxygen) and sends lots of material through the lactate maker (ldhA): lactate output is {lac}. This is how engineers steer microbes to make useful products.",
+     "tr": "Hedef artık laktat, yoğurdu ekşi yapan asit. Hücre biraz büyümeden feragat ediyor (oksijenli sağlıklı bir hücrenin %{abs} hızında büyüyor) ve bol madde laktat üreticiden (ldhA) geçiriyor: laktat üretimi {lac}. Mühendisler mikropları faydalı ürün yapmaya böyle yönlendirir."
+    }
+   },
+   {
+    "o": 0,
+    "g": 10,
+    "ko": [
+     "ldhA"
+    ],
+    "goal": "lactate",
+    "t": {
+     "en": "Fire the lactate maker",
+     "tr": "Laktat üreticiyi işten çıkarın"
+    },
+    "x": {
+     "en": "With the lactate maker (ldhA) switched off, lactate output drops to {lac}. The cell barely grows because we still demand lactate but it cannot make any. Switching one gene changes what a microbe can produce, the basic idea of metabolic engineering.",
+     "tr": "Laktat üretici (ldhA) kapatılınca laktat üretimi {lac} seviyesine düşüyor. Hâlâ laktat istediğimiz ama hücre hiç üretemediği için hücre neredeyse büyümüyor. Tek bir geni değiştirmek mikrobun üretebileceği şeyi değiştirir; metabolik mühendisliğin temel fikri budur."
+    }
+   }
+  ]
+ },
+ {
+  "id": "drug",
+  "t": {
+   "en": "How does a medicine kill a germ?",
+   "tr": "İlaç mikrobu nasıl öldürür?"
+  },
+  "b": {
+   "en": "Why some targets work and others do not.",
+   "tr": "Bazı hedefler neden işe yarar, bazıları yaramaz."
+  },
+  "steps": [
+   {
+    "o": 20,
+    "g": 10,
+    "ko": [],
+    "goal": "growth",
+    "t": {
+     "en": "Medicines block enzymes",
+     "tr": "İlaçlar enzimleri engeller"
+    },
+    "x": {
+     "en": "Many medicines work by blocking one enzyme of a germ. In this game, blocking an enzyme means switching off its gene. We start with a healthy cell. Now we will test two possible targets.",
+     "tr": "Birçok ilaç, mikrobun tek bir enzimini engelleyerek çalışır. Bu oyunda bir enzimi engellemek, onun genini kapatmak demektir. Sağlıklı bir hücreyle başlıyoruz. Şimdi iki olası hedefi deneyeceğiz."
+    }
+   },
+   {
+    "o": 20,
+    "g": 10,
+    "ko": [
+     "glk"
+    ],
+    "goal": "growth",
+    "t": {
+     "en": "Target 1: the sugar doorman (glk)",
+     "tr": "Hedef 1: şeker kapıcısı (glk)"
+    },
+    "x": {
+     "en": "Switch off glk and growth drops to {abs}%. Sugar cannot even get started, so the cell dies. A drug aimed at this enzyme would kill the germ. Genes like this are called essential. The table at the bottom lists all of them.",
+     "tr": "glk kapatılınca büyüme %{abs} seviyesine düşüyor. Şeker daha başlayamıyor, hücre ölüyor. Bu enzimi hedefleyen bir ilaç mikrobu öldürürdü. Bunun gibi genlere vazgeçilmez (esansiyel) gen denir. En alttaki tablo hepsini listeliyor."
+    }
+   },
+   {
+    "o": 20,
+    "g": 10,
+    "ko": [
+     "ldhA"
+    ],
+    "goal": "growth",
+    "t": {
+     "en": "Target 2: the lactate maker (ldhA)",
+     "tr": "Hedef 2: laktat üretici (ldhA)"
+    },
+    "x": {
+     "en": "Switch off ldhA and growth is {abs}%: nothing happens. With air the cell never needed that route. A drug aimed here would do nothing. A good target must be essential. Real drug hunters also look for genes the germ needs but humans do not have. This is the logic behind metabolic-model research on parasites such as whipworm.",
+     "tr": "ldhA kapatılınca büyüme %{abs}: hiçbir şey olmuyor. Oksijenli ortamda hücre o yola hiç ihtiyaç duymuyordu. Buraya yönelen bir ilaç işe yaramazdı. İyi bir hedef vazgeçilmez olmalı. Gerçek ilaç avcıları ayrıca mikropta olup insanda bulunmayan genleri arar. Kırbaç kurdu gibi parazitler üzerindeki metabolik model araştırmasının mantığı budur."
+    }
+   }
+  ]
+ }
+];
+    var UI_ST = { en: { step: 'Step %d of %d', prev: 'Back', next: 'Next', exit: 'Close story', done: 'Finish', oxy: 'Oxygen', none: 'none', sugar: 'Sugar', growth: 'Growth', growthTip: 'Compared with a healthy cell that has oxygen and the same sugar', off: 'Switched off', nooff: 'nothing', goalLac: 'Goal: lactate' },
+                  tr: { step: 'Adım %d / %d', prev: 'Geri', next: 'İleri', exit: 'Hikayeyi kapat', done: 'Bitir', oxy: 'Oksijen', none: 'yok', sugar: 'Şeker', growth: 'Büyüme', growthTip: 'Oksijeni ve aynı şekeri olan sağlıklı bir hücreyle karşılaştırıldığında', off: 'Kapalı gen', nooff: 'yok', goalLac: 'Hedef: laktat' } };
+    var STORY_IMG = { air: 'assets/stories/air.jpg', ferm: 'assets/stories/ferm.jpg', drug: 'assets/stories/drug.jpg' };
+    var STEP_ICON = { air: ['\ud83e\udda0', '\ud83d\udeab', '\ud83d\udd27'], ferm: ['\ud83c\udf5e', '\ud83e\udd5b', '\ud83d\udeab'], drug: ['\ud83d\udc8a', '\ud83d\udd12', '\ud83e\udd37'] };
+    var story = null;
+
+    function langKey() { return (window.i18n && window.i18n.lang) === 'tr' ? 'tr' : 'en'; }
+
+    function buildStoryList() {
+        var box = $('pg-story-list'), k = langKey();
+        box.innerHTML = '';
+        STORIES.forEach(function (sc) {
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'pg-story-btn'; b.dataset.id = sc.id;
+            b.innerHTML = '<span class="pg-story-thumb" style="background-image:url(' + STORY_IMG[sc.id] + ')"></span><span class="pg-story-txt"><strong>' + esc(sc.t[k]) + '</strong><small>' + esc(sc.b[k]) + '</small></span>';
+            b.addEventListener('click', function () { startStory(sc.id); });
+            box.appendChild(b);
+        });
+    }
+
+    function applyStep() {
+        var sc = STORIES.filter(function (x) { return x.id === story.id; })[0], st = sc.steps[story.i];
+        state = { knockouts: st.ko.slice(), glucose: st.g, oxygen: st.o, objective: st.goal };
+        render();
+    }
+    function startStory(id) { story = { id: id, i: 0 }; applyStep(); $('pg-story').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+    function endStory() { story = null; render(); }
+
+    function updateStory() {
+        var panel = $('pg-story'), k = langKey(), U = UI_ST[k];
+        Array.prototype.forEach.call($('pg-story-list').children, function (b) {
+            b.setAttribute('aria-pressed', String(!!story && story.id === b.dataset.id));
+        });
+        if (!story) { panel.hidden = true; return; }
+        var sc = STORIES.filter(function (x) { return x.id === story.id; })[0], st = sc.steps[story.i];
+        var res = FBAModel.analyse(state), mu = res.mutant;
+        var ref = FBAModel.solve({ glucose: state.glucose, oxygen: 20, knockouts: [], objective: 'growth' }).growth;
+        var abs = ref > 1e-9 ? Math.round(100 * mu.growth / ref) : 0;
+        var rel = res.wild.growth > 1e-9 ? Math.round(100 * mu.growth / res.wild.growth) : 0;
+        var text = st.x[k].replace('{abs}', abs).replace('{pct}', rel).replace('{lac}', mu.lactate.toFixed(1));
+        panel.hidden = false;
+        $('pg-story-step').textContent = U.step.replace('%d', story.i + 1).replace('%d', sc.steps.length) + ' · ' + sc.t[k];
+        $('pg-story-title').textContent = STEP_ICON[sc.id][story.i] + '  ' + st.t[k];
+        var img = $('pg-story-img');
+        if (img.getAttribute('data-id') !== sc.id) { img.src = STORY_IMG[sc.id]; img.setAttribute('data-id', sc.id); }
+        var offs = state.knockouts.length ? state.knockouts.join(', ') : U.nooff;
+        var barCol = abs >= 99 ? '#5eeaa0' : abs <= 1 ? '#ff7a88' : '#ffc857';
+        $('pg-story-chips').innerHTML =
+            '<span class="pg-chipstat">\ud83e\udee7 ' + esc(U.oxy) + ': <b>' + (state.oxygen > 0 ? state.oxygen + '/20' : esc(U.none)) + '</b></span>' +
+            '<span class="pg-chipstat">\ud83c\udf6c ' + esc(U.sugar) + ': <b>' + state.glucose + '/10</b></span>' +
+            '<span class="pg-chipstat' + (state.knockouts.length ? ' bad' : '') + '">\ud83d\udd34 ' + esc(U.off) + ': <b><i>' + esc(offs) + '</i></b></span>' +
+            (state.objective === 'lactate' ? '<span class="pg-chipstat">\ud83e\udd5b ' + esc(U.goalLac) + '</span>' : '') +
+            '<span class="pg-chipstat wide" title="' + esc(U.growthTip) + '">\ud83d\udcc8 ' + esc(U.growth) + ': <b>' + abs + '%</b><span class="pg-minibar"><span style="width:' + Math.min(100, abs) + '%;background:' + barCol + '"></span></span></span>';
+        var dots = ''; for (var d = 0; d < sc.steps.length; d++) dots += '<span class="' + (d === story.i ? 'on' : d < story.i ? 'done' : '') + '"></span>';
+        $('pg-story-dots').innerHTML = dots;
+        panel.classList.remove('pg-pop'); void panel.offsetWidth; panel.classList.add('pg-pop');
+        $('pg-story-body').textContent = text;
+        $('pg-story-prev').textContent = U.prev; $('pg-story-prev').disabled = story.i === 0;
+        $('pg-story-next').textContent = story.i === sc.steps.length - 1 ? U.done : U.next;
+        $('pg-story-exit').textContent = U.exit;
+    }
+    $('pg-story-prev').addEventListener('click', function () { if (story && story.i > 0) { story.i--; applyStep(); } });
+    $('pg-story-next').addEventListener('click', function () {
+        var sc = STORIES.filter(function (x) { return x.id === story.id; })[0];
+        if (story.i < sc.steps.length - 1) { story.i++; applyStep(); } else endStory();
+    });
+    $('pg-story-exit').addEventListener('click', endStory);
+
     function render() {
         renderGloss();
+        updateStory();
         if (!aiBusy) { $('pg-ai-out').textContent = ''; $('pg-ai-src').textContent = ''; }
         var L = t();
         // controls
@@ -685,9 +930,24 @@
     $('pg-goal-growth').addEventListener('click', function () { state.objective = 'growth'; render(); });
     $('pg-goal-lac').addEventListener('click', function () { state.objective = 'lactate'; render(); });
     $('pg-reset').addEventListener('click', function () { state = { knockouts: [], glucose: 10, oxygen: 20, objective: 'growth' }; render(); });
-    document.addEventListener('langchange', render);
+    document.addEventListener('langchange', function () { buildStoryList(); render(); });
 
     buildChips();
     buildMap();
+    buildStoryList();
     render();
+
+    // read-only access for js/playground-pro.js (exports, methods, real-model mode)
+    window.PGHooks = {
+        state: function () { return state; },
+        svg: function () { return mapEls.svg; },
+        rname: rname,
+        lang: langKey,
+        facts: facts,
+        analyse: function () { return FBAModel.analyse(state); },
+        hint: function (g) { return T[langKey()].hint[g] || ''; },
+        glossary: function () { return GLOSS[langKey()]; },
+        esc: esc
+    };
+    document.dispatchEvent(new CustomEvent('pghooks'));
 })();

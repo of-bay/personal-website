@@ -14,14 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
         toggle.setAttribute('aria-expanded', String(open));
     }
 
-    function route() {
-        const id = (location.hash || '#home').slice(1);
-        // An id may point at a sub-block (e.g. #tubitak); show the section that contains it.
-        const el = document.getElementById(id);
-        const target = (el && el.closest('.page-section')) || document.getElementById('home');
+    const canVT = typeof document.startViewTransition === 'function' &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (canVT) document.documentElement.classList.add('has-vt');
+    const order = Array.from(sections);
+    let current = null;
 
+    function apply(target, el) {
         sections.forEach(sec => sec.classList.remove('active-section'));
         target.classList.add('active-section');
+        document.documentElement.dataset.page = target.id;
 
         navLinks.forEach(a => {
             if (a.getAttribute('href') === '#' + target.id) a.setAttribute('aria-current', 'page');
@@ -30,8 +32,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateTitle(target);
         setMenu(false);
-        if (el && el !== target) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        else window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (el && el !== target) el.scrollIntoView({ behavior: canVT ? 'auto' : 'smooth', block: 'start' });
+        else window.scrollTo({ top: 0, behavior: canVT ? 'auto' : 'smooth' });
+    }
+
+    function route() {
+        const id = (location.hash || '#home').slice(1);
+        // An id may point at a sub-block (e.g. #tubitak); show the section that contains it.
+        const el = document.getElementById(id);
+        const target = (el && el.closest('.page-section')) || document.getElementById('home');
+
+        // Animated page transition between sections (not on first load or when staying on the same page).
+        if (canVT && current && current !== target) {
+            document.documentElement.dataset.dir = order.indexOf(target) < order.indexOf(current) ? 'back' : 'fwd';
+            current = target;
+            document.startViewTransition(() => apply(target, el));
+        } else {
+            current = target;
+            apply(target, el);
+        }
     }
 
     function updateTitle(target) {
