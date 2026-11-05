@@ -130,8 +130,19 @@ export const RULES = [
   ["👥", "You play as a group. The first group member to press 🔒 Lock decides the group's answer, so agree before you lock!"],
   ["⏱️", "Lock your answer before the timer runs out. Fastest correct group earns the ⚡ Speed badge, and 3+ in a row ignites a 🔥 Processivity Streak!"],
   ["🃏", "Each group has 6 jokers (once per game). Note: Alt. Splicing and Restriction Enzyme apply to multiple-choice questions only."],
-  ["🎓", "At the end of the game, your phone generates a Personalised Revision Sheet with all questions and explanations to save as a PDF."],
+  ["🎓", "At the end of the game, your phone generates a Personalised Concept Study Guide explaining the topics behind any questions your group missed (without revealing the questions or answers)."],
 ];
+
+export const WEEK_TITLES = {
+  "2.1": "Genomes & History I",
+  "2.2": "Human Genome Project & Post-Genomic Era",
+  "3": "Principles of Genome Sequencing",
+  "4": "Genome Assembly",
+  "6": "Genome Annotation",
+  "7": "Transcriptomics & RNA-seq",
+  "9": "Single-Cell & Spatial Transcriptomics",
+  "12": "Proteomics & Mass Spectrometry",
+};
 
 
 export const LETTERS = ["A", "B", "C", "D", "E", "F"];

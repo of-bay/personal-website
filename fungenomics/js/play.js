@@ -1,5 +1,5 @@
 // FunGenomics Live — student phone client
-import { getDB, JOKERS, RULES, LETTERS, initTheme, esc, demoBanner, burstConfetti } from "./db.js";
+import { getDB, JOKERS, RULES, WEEK_TITLES, LETTERS, initTheme, esc, demoBanner, burstConfetti } from "./db.js";
 
 const $ = (s) => document.querySelector(s);
 const CIRC = 263.9;
@@ -478,17 +478,13 @@ function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.ad
 
 function recordStudyItem(st, q, pick, r) {
   if (!st.reveal) return;
-  const myAns = pick?.opts?.length ? pick.opts.join(" · ") : "No answer locked";
+  // Never store question prompts or answers so questions can be reused in future sessions/quizzes.
   const item = {
     qKey: st.qKey,
-    num: st.qIndex + 1,
     week: q.week,
-    type: q.is_bonus ? "Bonus" : q.type,
-    prompt: q.prompt,
-    myAns,
-    correctAns: st.reveal.answer,
-    ok: !!(r.correct || r.pts > 0),
-    pts: r.pts || 0,
+    title: WEEK_TITLES[q.week] || "Functional Genomics",
+    ok: !!r.correct,
+    partial: !!(r.pts > 0 && !r.correct),
     explanation: st.reveal.explanation || "",
   };
   const idx = studyLog.findIndex((x) => x.qKey === st.qKey);
@@ -506,32 +502,25 @@ function renderStudySheet(showIt) {
   if (!showIt || !studyLog.length) { box.classList.add("hidden"); return; }
   box.classList.remove("hidden");
   const okCount = studyLog.filter((x) => x.ok).length;
-  const missedCount = studyLog.length - okCount;
-  const list = studyFilterMissed ? studyLog.filter((x) => !x.ok) : studyLog;
+  const toReview = studyLog.filter((x) => !x.ok && x.explanation);
 
   box.innerHTML = `
     <div class="study-head">
       <div>
-        <h3>🎓 Personalised Revision Sheet</h3>
-        <p class="muted small">Your group got <b>${okCount} / ${studyLog.length}</b> right. Save or print this sheet to revise for Quiz 1!</p>
+        <h3>🎓 Personalised Concept Study Guide</h3>
+        <p class="muted small">Your group got <b>${okCount} / ${studyLog.length}</b> fully right. ${toReview.length ? `Below ${toReview.length === 1 ? "is the core concept" : `are the <b>${toReview.length} core concepts</b>`} behind the questions your group missed or got partial credit on (questions &amp; answers are hidden so the game can be replayed).` : "Spotless performance!"}</p>
       </div>
-      <div class="no-print" style="display:flex;gap:.4rem;flex-wrap:wrap">
-        <button type="button" class="btn ${!studyFilterMissed ? "good" : ""}" id="stAllBtn" style="padding:.4em .75em;font-size:.82rem">All (${studyLog.length})</button>
-        <button type="button" class="btn ${studyFilterMissed ? "warn" : ""}" id="stMissBtn" style="padding:.4em .75em;font-size:.82rem">❌ Missed (${missedCount})</button>
+      ${toReview.length ? `<div class="no-print" style="display:flex;gap:.4rem;flex-wrap:wrap">
         <button type="button" class="btn primary" id="stPrintBtn" style="padding:.4em .85em;font-size:.82rem">🖨️ Save / Print PDF</button>
-      </div>
+      </div>` : ""}
     </div>
-    <div class="jk-list">${list.length ? list.map((it) => `
-      <div class="study-item ${it.ok ? "" : "missed"}">
-        <div class="eyebrow">Q${it.num} · Week ${esc(it.week)} · ${esc(it.type)} · ${it.ok ? `✅ +${it.pts}` : "❌ Missed"}</div>
-        <div class="q-t">${esc(it.prompt)}</div>
-        <div class="ans-line">Your group: <b>${esc(it.myAns)}</b></div>
-        <div class="ans-line" style="color:var(--good)">Correct: <b>${esc(it.correctAns)}</b></div>
-        ${it.explanation ? `<div class="exp-line">💡 ${esc(it.explanation)}</div>` : ""}
-      </div>`).join("") : `<p class="muted">🎉 Your group didn't miss a single question!</p>`}
+    <div class="jk-list">${toReview.length ? toReview.map((it, idx) => `
+      <div class="study-item missed">
+        <div class="eyebrow">Concept ${idx + 1} · Week ${esc(it.week)} — ${esc(it.title)} · ${it.partial ? "⚠️ Partial credit" : "📌 Review this topic"}</div>
+        <div class="exp-line" style="margin-top:.2rem;color:var(--text);font-size:.95rem">💡 ${esc(it.explanation)}</div>
+      </div>`).join("") : `<p class="muted">🎉 Your group answered every single question right — no weak spots detected!</p>`}
     </div>`;
 
-  $("#stAllBtn").onclick = () => { studyFilterMissed = false; renderStudySheet(true); };
-  $("#stMissBtn").onclick = () => { studyFilterMissed = true; renderStudySheet(true); };
-  $("#stPrintBtn").onclick = () => window.print();
+  const printBtn = $("#stPrintBtn");
+  if (printBtn) printBtn.onclick = () => window.print();
 }
