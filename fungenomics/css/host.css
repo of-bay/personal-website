@@ -126,3 +126,28 @@ h3 { font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; color: 
   .bar-row { grid-template-columns: 2rem 8rem 1fr 4rem; }
 }
 
+
+/* ---------- streak, telemetry, and new question formats (host) ---------- */
+.streak-pill {
+  display: inline-flex; align-items: center; gap: .2em;
+  font-size: .78em; font-weight: 800; padding: .15em .5em; border-radius: 999px;
+  background: var(--warn-bg); color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  margin-left: .35em;
+}
+.telemetry-bar {
+  display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: .4rem;
+}
+.telemetry-bar .pill { font-size: .95rem; padding: .4em .9em; }
+.match-host-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.match-col { display: grid; gap: .6rem; }
+.match-col h4 { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+.write-host-box { padding: 1.5rem; display: grid; gap: 1rem; }
+.write-answers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .75rem; }
+.write-ans-card {
+  padding: .9rem 1.1rem; border-radius: 14px; background: var(--surface-2);
+  border: 2px solid var(--border); display: flex; flex-direction: column; gap: .35rem;
+}
+.write-ans-card.correct { border-color: var(--good); background: var(--good-bg); }
+.write-ans-card.wrong { border-color: var(--bad); background: var(--bad-bg); }
+.write-ans-card .gname { font-size: .82rem; font-weight: 700; color: var(--text-2); display: flex; justify-content: space-between; align-items: center; }
+.write-ans-card .val { font-family: var(--mono); font-size: 1.25rem; font-weight: 700; word-break: break-word; }

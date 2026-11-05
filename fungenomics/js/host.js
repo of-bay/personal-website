@@ -1,9 +1,9 @@
 // FunGenomics Live — host controller (projector screen)
-import { getDB, JOKERS, LETTERS, initTheme, esc, demoBanner } from "./db.js";
+import { getDB, JOKERS, LETTERS, initTheme, esc, demoBanner, normText, burstConfetti, synthFX } from "./db.js";
 
 const $ = (s) => document.querySelector(s);
 const QUIZ1 = ["2.1", "2.2", "3", "4"];
-const TYPES = ["Scenario", "Figure", "Bonus"];
+const TYPES = ["Scenario", "Figure", "Order", "Match", "Write", "Bonus"];
 const CIRC = 276.46;
 
 let db, uid, bank;
@@ -84,8 +84,9 @@ function buildSetup() {
   const titles = Object.fromEntries(bank.questions.map((q) => [String(q.week), q.week_title]));
   $("#weekChecks").innerHTML = weeks.map((w) =>
     `<label title="${esc(titles[w])}"><input type="checkbox" value="${w}" ${cfg.weeks.has(w) ? "checked" : ""}> Week ${w}</label>`).join("");
+  const typeLabel = { Scenario: "Scenario", Figure: "Figure", Order: "🧩 Order", Match: "🔗 Match", Write: "✍️ Write", Bonus: "🔥 Bonus" };
   $("#typeChecks").innerHTML = TYPES.map((t) =>
-    `<label><input type="checkbox" value="${t}" checked> ${t === "Bonus" ? "🔥 Bonus" : t}</label>`).join("");
+    `<label><input type="checkbox" value="${t}" checked> ${typeLabel[t] || t}</label>`).join("");
   $("#weekChecks").onchange = (e) => { e.target.checked ? cfg.weeks.add(e.target.value) : cfg.weeks.delete(e.target.value); updateMatch(); };
   $("#typeChecks").onchange = (e) => { e.target.checked ? cfg.types.add(e.target.value) : cfg.types.delete(e.target.value); updateMatch(); };
   document.querySelectorAll("[data-preset]").forEach((b) => b.onclick = () => {
@@ -141,6 +142,7 @@ async function createGame() {
     createdAt: db.serverNow(),
     config: { groups, timer: cfg.timer, deck: qs.map((q) => q.id), title: "Functional Genomics" },
     scores: Object.fromEntries(groups.map((g) => [g.id, 0])),
+    streaks: Object.fromEntries(groups.map((g) => [g.id, 0])),
     state: { phase: "lobby", qIndex: -1, total: qs.length },
   });
   localStorage.setItem("fg-host-code", c);
@@ -182,7 +184,7 @@ function render() {
   if (st.phase !== lastPhase) {
     if (st.phase === "revealed") play("reveal");
     if (st.phase === "closed" && lastPhase === "question") play("buzzer");
-    if (st.phase === "over") play("award");
+    if (st.phase === "over") { play("award"); burstConfetti(48); if (soundOn) synthFX("fanfare"); }
   }
   lastPhase = st.phase;
 
@@ -223,8 +225,17 @@ function renderQuestion() {
   if (!q) return;
   $("#qNum").textContent = `Question ${st.qIndex + 1} of ${st.total}`;
   $("#qWeek").textContent = `Week ${q.week} · ${q.week_title}`;
-  $("#qType").textContent = q.is_bonus ? "🔥 Bonus · 2 pts" : q.type;
-  $("#qType").className = "pill " + (q.is_bonus ? "warn" : q.type === "Figure" ? "purple" : "");
+  const badgeMap = {
+    Order: ["🧩 Order Pipeline · 2 pts", "accent"],
+    Match: ["🔗 Match Pairs · 2 pts", "purple"],
+    Write: ["✍️ Written · 2 pts", "warn"],
+    Figure: ["Figure · 1 pt", "purple"],
+    Scenario: ["Scenario · 1 pt", ""],
+  };
+  const [bTxt, bCls] = q.is_bonus ? ["🔥 Bonus · 2 pts", "warn"] : (badgeMap[q.type] || [q.type, ""]);
+  $("#qType").textContent = bTxt;
+  $("#qType").className = "pill " + bCls;
+  $("#qPrompt").style.whiteSpace = "pre-line";
   $("#qPrompt").textContent = q.prompt;
 
   const fig = $("#qFigure");
@@ -238,21 +249,72 @@ function renderQuestion() {
 
   const revealed = st.phase === "revealed";
   const picks = picksNow();
-  $("#qOptions").innerHTML = q.options.map((o, i) => {
-    let cls = "opt";
-    let tags = "";
-    if (revealed) {
-      const who = groups().filter((g) => (picks[g.id]?.opts || []).includes(o));
-      tags = who.map((g) => `<span class="tag">${esc(g.name)}</span>`).join("");
-      cls += o === st.reveal.answer ? " correct" : who.length ? " wrong" : " dim";
+  const res = st.reveal?.results || {};
+  const box = $("#qOptions");
+
+  if (q.type === "Order") {
+    box.className = "options host-options";
+    const list = revealed ? (st.reveal.steps || q.options) : q.options;
+    const winners = revealed ? groups().filter((g) => res[g.id]?.correct).map((g) => `<span class="tag">${esc(g.name)}</span>`).join("") : "";
+    box.innerHTML = list.map((step, i) =>
+      `<div class="opt ${revealed ? "correct" : ""}"><span class="letter">${revealed ? i + 1 : "?"}</span><span class="txt">${esc(step)}</span><span class="tags">${i === list.length - 1 ? winners : ""}</span></div>`
+    ).join("");
+  } else if (q.type === "Match") {
+    box.className = "match-host-grid";
+    if (!revealed) {
+      box.innerHTML = `
+        <div class="match-col"><h4>Terms / Platforms</h4>${(q.lefts || []).map((l, i) => `<div class="opt"><span class="letter">${i + 1}</span><span class="txt">${esc(l)}</span></div>`).join("")}</div>
+        <div class="match-col"><h4>Shuffled Definitions</h4>${(q.options || []).map((r, i) => `<div class="opt"><span class="letter">${LETTERS[i]}</span><span class="txt">${esc(r)}</span></div>`).join("")}</div>`;
+    } else {
+      const pairs = st.reveal.pairs || [];
+      box.innerHTML = pairs.map((p, i) =>
+        `<div class="opt correct" style="grid-column:1/-1"><span class="letter">${i + 1}</span><span class="txt"><b>${esc(p.left)}</b>  ➔  ${esc(p.right)}</span></div>`
+      ).join("");
     }
-    return `<div class="${cls}"><span class="letter">${LETTERS[i]}</span><span class="txt">${esc(o)}</span><span class="tags">${tags}</span></div>`;
-  }).join("");
+  } else if (q.type === "Write") {
+    box.className = "card write-host-box";
+    if (!revealed) {
+      box.innerHTML = `<p class="muted" style="font-size:1.2rem">✍️ <b>Short-answer round:</b> Groups are typing their answer on their phones (no multiple-choice options).</p>`;
+    } else {
+      box.innerHTML = `
+        <div class="opt correct"><span class="letter">✓</span><span class="txt">Correct Answer: <b class="mono">${esc(st.reveal.answer)}</b></span></div>
+        <div class="write-answers-grid">${groups().map((g) => {
+          const typed = (picks[g.id]?.opts || [])[0] || "";
+          const r = res[g.id] || {};
+          const canAccept = typed && !r.correct;
+          return `<div class="write-ans-card ${r.correct ? "correct" : typed ? "wrong" : ""}">
+            <div class="gname"><span>${esc(g.name)}</span>${canAccept ? `<button class="btn good" style="padding:.25em .6em;font-size:.78rem" data-accept-write="${g.id}">✓ Accept</button>` : r.correct ? `<span>✅ +${r.pts}</span>` : ""}</div>
+            <div class="val">${typed ? esc(typed) : "<span class='muted'>—</span>"}</div>
+          </div>`;
+        }).join("")}</div>`;
+      box.onclick = (e) => {
+        const gid = e.target.dataset?.acceptWrite;
+        if (gid) acceptWrittenAnswer(gid);
+      };
+    }
+  } else {
+    box.className = "options host-options";
+    box.innerHTML = (q.options || []).map((o, i) => {
+      let cls = "opt";
+      let tags = "";
+      if (revealed) {
+        const who = groups().filter((g) => (picks[g.id]?.opts || []).includes(o));
+        tags = who.map((g) => `<span class="tag">${esc(g.name)}</span>`).join("");
+        cls += o === st.reveal.answer ? " correct" : who.length ? " wrong" : " dim";
+      }
+      return `<div class="${cls}"><span class="letter">${LETTERS[i]}</span><span class="txt">${esc(o)}</span><span class="tags">${tags}</span></div>`;
+    }).join("");
+  }
 
   const ex = $("#qExplain");
   if (revealed) {
     ex.classList.remove("hidden");
+    const tel = [];
+    if (st.reveal.fastest) tel.push(`<span class="pill good">⚡ Fastest: ${esc(st.reveal.fastest)}</span>`);
+    if (st.reveal.trap) tel.push(`<span class="pill bad">🪤 Class Trap: ${esc(st.reveal.trap)}</span>`);
+    const telHtml = tel.length ? `<div class="telemetry-bar rise">${tel.join("")}</div>` : "";
     ex.innerHTML =
+      telHtml +
       (st.reveal.explanation ? `<div class="card explain rise"><h4>💡 Scientific explanation</h4><p>${esc(st.reveal.explanation)}</p></div>` : "") +
       (st.reveal.rubric ? `<div class="card explain bonus rise"><h4>📋 Verbal defence rubric</h4><p>${esc(st.reveal.rubric)}</p></div>` : "");
     if (!ex.dataset.shown) { ex.dataset.shown = "1"; setTimeout(() => ex.scrollIntoView({ behavior: "smooth", block: "nearest" }), 350); }
@@ -262,10 +324,11 @@ function renderQuestion() {
   } else { ex.classList.add("hidden"); ex.innerHTML = ""; delete ex.dataset.shown; }
 
   // group status sidebar
-  const res = st.reveal?.results || {};
   $("#groupStatus").innerHTML = groups().map((g) => {
     const locked = !!picks[g.id];
     const jk = Object.keys(JOKERS).filter((k) => jokerUsedNow(g.id, k)).map((k) => JOKERS[k].emoji).join("");
+    const streak = game.streaks?.[g.id] || 0;
+    const streakBadge = streak >= 2 ? `<span class="streak-pill" title="${streak} correct in a row!">🔥 ${streak}×</span>` : "";
     let delta = "";
     if (revealed && res[g.id]) {
       const r = res[g.id];
@@ -273,7 +336,7 @@ function renderQuestion() {
     }
     const own = st.phase === "question" && st.deadline?.[g.id] != null && !locked
       ? `<span class="own-t mono" data-g="${g.id}"></span>` : "";
-    return `<div class="gs ${locked ? "locked" : ""}"><span class="dot"></span><span>${esc(g.name)} <span class="jk">${jk}</span>${own}</span>
+    return `<div class="gs ${locked ? "locked" : ""}"><span class="dot"></span><span>${esc(g.name)}${streakBadge} <span class="jk">${jk}</span>${own}</span>
       <span class="score">${game.scores?.[g.id] ?? 0}${delta}</span></div>`;
   }).join("");
 
@@ -379,11 +442,25 @@ async function nextQuestion() {
   const i = S().qIndex + 1;
   if (i >= deck.length) return db.update(`games/${code}/state`, { phase: "over" });
   const q = deck[i];
+  let options = [], lefts = null, placeholder = null;
+  if (q.type === "Order") {
+    options = shuffle([...q.steps]);
+    if (options.every((x, idx) => x === q.steps[idx]) && options.length > 1) [options[0], options[1]] = [options[1], options[0]];
+  } else if (q.type === "Match") {
+    lefts = q.pairs.map((p) => p.left);
+    options = shuffle(q.pairs.map((p) => p.right));
+  } else if (q.type === "Write") {
+    options = [];
+    placeholder = q.placeholder || "Type your answer...";
+  } else {
+    options = buildOptions(q);
+  }
+  const now = db.serverNow();
   await db.set(`games/${code}/state`, {
     phase: "question", qIndex: i, qKey: `q${i}`, total: deck.length,
     question: { id: q.id, week: String(q.week), week_title: q.week_title, type: q.type, is_bonus: !!q.is_bonus,
-                prompt: q.prompt, figure: q.figure_asset || null, options: buildOptions(q) },
-    endsAt: db.serverNow() + game.config.timer * 1000, duration: game.config.timer * 1000, paused: false, pausedAt: null,
+                prompt: q.prompt, figure: q.figure_asset || null, options, lefts, placeholder },
+    startedAt: now, endsAt: now + game.config.timer * 1000, duration: game.config.timer * 1000, paused: false, pausedAt: null,
   });
 }
 
@@ -392,21 +469,93 @@ async function reveal() {
   const picks = picksNow();
   const results = {};
   const scores = { ...(game.scores || {}) };
+  const streaks = { ...(game.streaks || {}) };
+
   groups().forEach((g) => {
     const opts = picks[g.id]?.opts || [];
-    const correct = opts.includes(q.answer);
     const mult = jokerUsedNow(g.id, "pcr") ? 2 : 1;
-    let pts = 0, pending = false;
-    if (correct) { if (q.is_bonus) pending = true; else pts = 1 * mult; }
-    results[g.id] = { correct, pts, pending, mult };
+    let correct = false, base = 0, pending = false, hits = 0;
+
+    if (q.type === "Order") {
+      correct = opts.length === q.steps.length && opts.every((x, idx) => x === q.steps[idx]);
+      base = correct ? 2 : 0;
+    } else if (q.type === "Match") {
+      const want = new Set(q.pairs.map((p) => `${p.left} => ${p.right}`));
+      hits = opts.filter((x) => want.has(x)).length;
+      correct = hits === q.pairs.length;
+      base = correct ? 2 : hits >= 2 ? 1 : 0;
+    } else if (q.type === "Write") {
+      const typed = normText(opts[0] || "");
+      const valid = new Set([normText(q.answer), ...(q.accepted || []).map(normText)]);
+      correct = !!typed && valid.has(typed);
+      base = correct ? 2 : 0;
+    } else {
+      correct = opts.includes(q.answer);
+      if (correct) { if (q.is_bonus) pending = true; else base = 1; }
+    }
+
+    const pts = base * mult;
+    results[g.id] = { correct, pts, pending, mult, hits };
     scores[g.id] = (scores[g.id] || 0) + pts;
+    streaks[g.id] = (correct || base > 0) ? (streaks[g.id] || 0) + 1 : 0;
   });
+
+  // Photofinish telemetry (fastest lock)
+  let fastest = null;
+  if (st.startedAt) {
+    const pool = groups().filter((g) => picks[g.id]?.at && (results[g.id]?.correct || results[g.id]?.pts > 0));
+    const list = (pool.length ? pool : groups().filter((g) => picks[g.id]?.at))
+      .map((g) => ({ name: g.name, dt: Math.max(0.4, (picks[g.id].at - st.startedAt) / 1000), ok: results[g.id]?.correct }))
+      .sort((a, b) => a.dt - b.dt);
+    if (list.length) fastest = `${list[0].name} (${list[0].dt.toFixed(1)}s${list[0].ok ? " · correct" : ""})`;
+  }
+
+  // Class Trap alert (when >= 2 groups pick the same wrong MCQ option)
+  let trap = null;
+  if (!["Order", "Match", "Write"].includes(q.type)) {
+    const wrongCounts = {};
+    groups().forEach((g) => {
+      (picks[g.id]?.opts || []).forEach((o) => {
+        if (o !== q.answer) wrongCounts[o] = (wrongCounts[o] || 0) + 1;
+      });
+    });
+    const topWrong = Object.entries(wrongCounts).sort((a, b) => b[1] - a[1])[0];
+    if (topWrong && topWrong[1] >= 2) trap = `${topWrong[1]} groups picked "${topWrong[0]}"`;
+  }
+
   await db.update(`games/${code}`, {
     "state/phase": "revealed",
-    "state/reveal": { answer: q.answer, explanation: q.explanation || null, rubric: q.bonus_defense_prompt || null, results },
+    "state/reveal": {
+      answer: q.answer,
+      steps: q.steps || null,
+      pairs: q.pairs || null,
+      explanation: q.explanation || null,
+      rubric: q.bonus_defense_prompt || null,
+      fastest,
+      trap,
+      results,
+    },
     scores,
+    streaks,
   });
-  if (Object.values(results).some((r) => r.pts > 0)) setTimeout(() => play("award"), 600);
+  if (Object.values(results).some((r) => r.pts > 0)) {
+    burstConfetti(34);
+    setTimeout(() => play("award"), 600);
+  }
+}
+
+async function acceptWrittenAnswer(gid) {
+  const r = S().reveal?.results?.[gid];
+  if (!r || r.correct) return;
+  const pts = 2 * (r.mult || 1);
+  await db.update(`games/${code}`, {
+    [`state/reveal/results/${gid}/correct`]: true,
+    [`state/reveal/results/${gid}/pts`]: pts,
+    [`scores/${gid}`]: (game.scores?.[gid] || 0) + pts,
+    [`streaks/${gid}`]: (game.streaks?.[gid] || 0) + 1,
+  });
+  play("award");
+  burstConfetti(28);
 }
 
 async function awardBonus(gid, v) {
@@ -456,7 +605,7 @@ function handleJokers() {
     Object.keys(JOKERS).forEach((k) => {
       if (!jokerUsedNow(g.id, k)) return;
       const id = `${st.qKey}:${g.id}:${k}`;
-      if (!seenJokers.has(id)) { seenJokers.add(id); toast(`${JOKERS[k].emoji} ${g.name} used ${JOKERS[k].name}!`); play("reveal"); }
+      if (!seenJokers.has(id)) { seenJokers.add(id); showJokerCinema(g.name, k); }
       if (st.applied?.[`${g.id}_${k}`]) return;
       if (k === "re") {
         upd[`cut/${g.id}`] = shuffle(st.question.options.filter((o) => o !== q.answer)).slice(0, 2);
@@ -533,3 +682,19 @@ function lightbox(src) {
 }
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2600); }
 
+
+function showJokerCinema(groupName, key) {
+  const j = JOKERS[key];
+  if (!j) return;
+  if (soundOn) synthFX(key === "sho" ? "sabotage" : "boost");
+  document.querySelector(".joker-cinema")?.remove();
+  const d = document.createElement("div");
+  d.className = "joker-cinema" + (key === "sho" ? " sabotage" : "");
+  d.innerHTML = `<div class="joker-cinema-box">
+    <div class="jc-emoji">${j.emoji}</div>
+    <div class="jc-title">${esc(groupName)} activated ${esc(j.name)}!</div>
+    <div class="jc-sub">${esc(j.desc)}</div>
+  </div>`;
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 2400);
+}

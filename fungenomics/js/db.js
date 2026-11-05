@@ -126,11 +126,11 @@ export const JOKERS = {
 };
 
 export const RULES = [
-  ["🎯", "The instructor shows a question on the big screen. It also appears on your phone with 6 options."],
+  ["🎯", "Questions appear on the projector and your phone: Multiple Choice (1 pt), plus harder Ordering, Matching, Written & 🔥 Bonus rounds (up to 2 pts)."],
   ["👥", "You play as a group. The first group member to press 🔒 Lock decides the group's answer, so agree before you lock!"],
-  ["⏱️", "Lock your answer before the timer runs out. No answer = no points."],
-  ["✅", "The instructor reveals the answer. Correct = 1 point. 🔥 Bonus questions = up to 2 points after your group verbally defends its answer."],
-  ["🃏", "Each group has 6 jokers. Each joker can be used only once per game, by any member of the group."],
+  ["⏱️", "Lock your answer before the timer runs out. Fastest correct group earns the ⚡ Speed badge, and 3+ in a row ignites a 🔥 Processivity Streak!"],
+  ["🃏", "Each group has 6 jokers (once per game). Note: Alt. Splicing and Restriction Enzyme apply to multiple-choice questions only."],
+  ["🎓", "At the end of the game, your phone generates a Personalised Revision Sheet with all questions and explanations to save as a PDF."],
 ];
 
 
@@ -164,3 +164,49 @@ export function demoBanner(db) {
   document.body.prepend(b);
 }
 
+
+export function normText(str) {
+  return String(str ?? "").toLowerCase().trim().replace(/\s+/g, "").replace(/['"\-_]/g, "");
+}
+
+export function burstConfetti(count = 36) {
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  const wrap = document.createElement("div");
+  wrap.className = "dna-confetti";
+  const tokens = ["A", "T", "G", "C", "🧬", "✨", "🧪"];
+  const colors = ["#00f0ff", "#b56cff", "#ffb547", "#3ddc97", "#ff6b8b", "#6c9bff"];
+  for (let i = 0; i < count; i++) {
+    const sp = document.createElement("span");
+    const tok = tokens[i % tokens.length];
+    sp.textContent = tok;
+    sp.style.left = Math.random() * 100 + "vw";
+    sp.style.color = colors[i % colors.length];
+    sp.style.animationDelay = (Math.random() * 0.45).toFixed(2) + "s";
+    sp.style.animationDuration = (1.6 + Math.random() * 1.1).toFixed(2) + "s";
+    sp.style.fontSize = (tok.length === 1 ? 18 + Math.random() * 12 : 20 + Math.random() * 12) + "px";
+    wrap.appendChild(sp);
+  }
+  document.body.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 3100);
+}
+
+let audioCtx = null;
+export function synthFX(kind = "boost") {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    audioCtx = audioCtx || new Ctx();
+    const now = audioCtx.currentTime;
+    const notes = kind === "sabotage" ? [440, 330, 220, 165] : kind === "fanfare" ? [523.25, 659.25, 783.99, 1046.5] : [392, 523.25, 659.25];
+    notes.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = kind === "sabotage" ? "sawtooth" : "triangle";
+      osc.frequency.setValueAtTime(freq, now + i * 0.09);
+      gain.gain.setValueAtTime(0.12, now + i * 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.24);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(now + i * 0.09); osc.stop(now + i * 0.09 + 0.25);
+    });
+  } catch {}
+}
