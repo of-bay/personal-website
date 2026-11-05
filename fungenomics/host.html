@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>FunGenomics Live — Host</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/fg.css">
+  <link rel="stylesheet" href="css/host.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧬%3C/text%3E%3C/svg%3E">
+  <script src="js/vendor/qrcode.js"></script>
+</head>
+<body class="host">
+  <header class="topbar">
+    <div class="brand">🧬 Fun<span class="dna">Genomics</span> <span class="muted live-tag">Live</span></div>
+    <span id="codeChip" class="pill accent mono hidden"></span>
+    <span id="roundChip" class="pill hidden"></span>
+    <div class="spacer"></div>
+    <button id="soundBtn" class="btn icon ghost" title="Sound (M)">🔊</button>
+    <button data-theme-toggle class="btn icon ghost" title="Theme (T)">☀️</button>
+    <button id="fsBtn" class="btn icon ghost" title="Fullscreen (F)">⛶</button>
+  </header>
+
+  <main id="app">
+    <!-- SETUP -->
+    <section id="vSetup" class="view setup">
+      <div class="setup-hero rise">
+        <p class="eyebrow">MBG419 · Functional Genomics · 2026/2027 Fall</p>
+        <h1>Start a live classroom game</h1>
+        <p class="muted">Students scan a QR code, join a group on their phones and lock in answers. You control the pace.</p>
+      </div>
+
+      <div id="resumeBox" class="card resume hidden">
+        <div><b>Unfinished game found</b> <span id="resumeCode" class="mono"></span></div>
+        <div class="row">
+          <button id="resumeBtn" class="btn primary">Resume</button>
+          <button id="discardBtn" class="btn ghost">Discard</button>
+        </div>
+      </div>
+
+      <div class="setup-grid">
+        <div class="card pad rise">
+          <h3>Groups</h3>
+          <div class="seg" id="groupSeg"></div>
+          <div id="groupNames" class="group-names"></div>
+        </div>
+
+        <div class="card pad rise">
+          <h3>Topics</h3>
+          <div class="row wrap gap-s">
+            <button class="btn" data-preset="quiz1">🎯 Quiz 1 (Weeks 2.1–4)</button>
+            <button class="btn ghost" data-preset="all">All</button>
+            <button class="btn ghost" data-preset="none">Clear</button>
+          </div>
+          <div id="weekChecks" class="chips"></div>
+          <h3 class="mt">Question types</h3>
+          <div id="typeChecks" class="chips"></div>
+        </div>
+
+        <div class="card pad rise">
+          <h3>Questions</h3>
+          <div class="seg" id="countSeg"></div>
+          <h3 class="mt">Timer per question</h3>
+          <div class="seg" id="timerSeg"></div>
+          <label class="check mt"><input type="checkbox" id="shuffleChk" checked> Shuffle question order</label>
+          <div class="match"><span id="matchNum" class="mono">0</span> questions match</div>
+          <button id="createBtn" class="btn primary lg full">Create game →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOBBY -->
+    <section id="vLobby" class="view lobby hidden">
+      <div class="lobby-join card">
+        <p class="eyebrow">Scan to join</p>
+        <div id="qr" class="qr"></div>
+        <div class="join-url mono" id="joinUrl"></div>
+        <div class="code-big mono" id="codeBig"></div>
+        <p class="muted small">or go to the link above and enter the code</p>
+      </div>
+      <div class="lobby-side">
+        <div class="lobby-head">
+          <h2><span id="playerCount">0</span> students joined</h2>
+          <button id="startBtn" class="btn primary lg">Start game ▶</button>
+        </div>
+        <div id="lobbyGroups" class="lobby-groups"></div>
+      </div>
+    </section>
+
+    <!-- QUESTION / REVEAL -->
+    <section id="vQuestion" class="view question hidden">
+      <div class="q-main">
+        <div class="q-meta">
+          <span id="qNum" class="pill"></span>
+          <span id="qWeek" class="pill accent"></span>
+          <span id="qType" class="pill"></span>
+        </div>
+        <h2 id="qPrompt" class="q-prompt"></h2>
+        <div class="q-body">
+          <div id="qFigure" class="figure q-figure hidden"><img alt="Question figure"><span class="zoom">🔍 Click to enlarge</span></div>
+          <div id="qOptions" class="options host-options"></div>
+        </div>
+        <div id="qExplain" class="reveal-panel hidden"></div>
+      </div>
+      <aside class="q-side">
+        <div class="card pad timer-card">
+          <div id="timer" class="timer" style="--size:150px">
+            <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="44" fill="none" stroke-width="8"/>
+              <circle class="bar" cx="50" cy="50" r="44" fill="none" stroke-width="8" stroke-dasharray="276.46" stroke-dashoffset="0"/></svg>
+            <div class="num">0</div>
+          </div>
+          <div id="phaseLabel" class="phase-label"></div>
+        </div>
+        <div class="card pad">
+          <p class="eyebrow">Groups</p>
+          <div id="groupStatus" class="group-status"></div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- LEADERBOARD / OVER -->
+    <section id="vBoard" class="view board hidden">
+      <h1 id="boardTitle">Leaderboard</h1>
+      <div id="podium" class="podium hidden"></div>
+      <div id="bars" class="bars"></div>
+    </section>
+  </main>
+
+  <!-- CONTROL BAR -->
+  <footer id="controls" class="controls hidden">
+    <div class="row gap-s">
+      <button id="pauseBtn" class="btn">⏸ Pause</button>
+      <button id="addBtn" class="btn">+15s</button>
+      <button id="skipBtn" class="btn ghost">Skip</button>
+    </div>
+    <div class="row gap-s" id="bonusAward"></div>
+    <div class="row gap-s">
+      <button id="endBtn" class="btn ghost">End game</button>
+      <button id="primaryBtn" class="btn primary lg">Reveal answer</button>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+  <script type="module" src="js/host.js"></script>
+</body>
+</html>
+

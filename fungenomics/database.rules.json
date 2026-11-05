@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "games": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() ? newData.child('hostUid').val() === auth.uid : data.child('hostUid').val() === auth.uid)",
+
+        "players": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && root.child('games/' + $code + '/hostUid').exists()",
+            ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('name').val().length <= 24 && root.child('games/' + $code + '/config/groups').exists())"
+          }
+        },
+
+        "picks": {
+          "$q": {
+            "$group": {
+              ".write": "auth != null && root.child('games/' + $code + '/players/' + auth.uid + '/group').val() === $group && root.child('games/' + $code + '/state/phase').val() === 'question' && root.child('games/' + $code + '/state/qKey').val() === $q",
+              ".validate": "newData.hasChildren(['opts', 'by', 'uid']) && newData.child('uid').val() === auth.uid"
+            }
+          }
+        },
+
+        "jokers": {
+          "$group": {
+            "$key": {
+              ".write": "auth != null && !data.exists() && root.child('games/' + $code + '/players/' + auth.uid + '/group').val() === $group && root.child('games/' + $code + '/state/phase').val() === 'question'",
+              ".validate": "($key === 'pcr' || $key === 'alt' || $key === 'ptm' || $key === 're') && newData.val() === root.child('games/' + $code + '/state/qKey').val()"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
