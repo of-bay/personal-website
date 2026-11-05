@@ -1,23 +1,19 @@
-// FunGenomics Live — Firebase configuration
+// FunGenomics Live — Firebase configuration (project: bay-website)
 // ---------------------------------------------------------------------------
-// 1. Create a Firebase project at https://console.firebase.google.com
-// 2. Add a "Web app" and paste its config object below.
-// 3. Enable  Build → Authentication → Sign-in method → Anonymous
-// 4. Enable  Build → Realtime Database, then paste database.rules.json
-//    into the "Rules" tab and Publish.
+// This web config is safe to publish: access is controlled by the
+// Realtime Database rules (database.rules.json), not by hiding the key.
 //
-// While apiKey is empty, the game runs in DEMO MODE: everything works,
-// but only between browser tabs on the SAME computer (good for testing).
+// To test locally WITHOUT Firebase, open any page with ?demo=1
+// (demo mode only syncs tabs on the same computer).
 // ---------------------------------------------------------------------------
 export const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  databaseURL: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
+  apiKey: "AIzaSyAuZmSU9P5cx_MibetXZW2DqmpfSxEKaz4",
+  authDomain: "gen-lang-client-0995306907.firebaseapp.com",
+  databaseURL: "https://gen-lang-client-0995306907-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "gen-lang-client-0995306907",
+  storageBucket: "gen-lang-client-0995306907.firebasestorage.app",
+  messagingSenderId: "504659427551",
+  appId: "1:504659427551:web:e6465fede2f72c5ed6296a",
 };
 
-export const DEMO_MODE = !firebaseConfig.apiKey;
-
+export const DEMO_MODE = !firebaseConfig.apiKey || new URLSearchParams(location.search).has("demo");

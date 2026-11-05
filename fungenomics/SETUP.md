@@ -16,7 +16,7 @@ python3 -m http.server 8765
 - Open http://localhost:8765/fungenomics/host.html and click **Create game**
 - Open http://localhost:8765/fungenomics/play.html?code=XXXX in 1–2 more tabs (or in a narrow window), then join different groups
 
-Demo mode only syncs tabs on the **same computer**.
+Firebase is now connected. To test offline without it, add `?demo=1` to the URL (demo mode only syncs tabs on the **same computer**).
 
 ## 2. Connect Firebase (one time, ~10 min, free)
 1. https://console.firebase.google.com → **Add project** (e.g. `fungenomics-live`). Analytics is not needed.
