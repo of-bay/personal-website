@@ -22,11 +22,24 @@
     <button id="soundBtn" class="btn icon ghost" title="Sound (M)">🔊</button>
     <button data-theme-toggle class="btn icon ghost" title="Theme (T)">☀️</button>
     <button id="fsBtn" class="btn icon ghost" title="Fullscreen (F)">⛶</button>
+    <button id="signOutBtn" class="btn ghost hidden" title="Sign out">Sign out</button>
   </header>
 
   <main id="app">
+    <!-- INSTRUCTOR SIGN-IN -->
+    <section id="vGate" class="view gate hidden">
+      <div class="card gate-card rise">
+        <div class="gate-icon">🔐</div>
+        <h1>Instructor sign-in</h1>
+        <p class="muted">Only the course instructor can host FunGenomics games.</p>
+        <button id="signInBtn" class="btn primary lg full">Sign in with Google</button>
+        <p id="gateErr" class="gate-err hidden"></p>
+        <a class="gate-student" href="./">Student? Join a game here →</a>
+      </div>
+    </section>
+
     <!-- SETUP -->
-    <section id="vSetup" class="view setup">
+    <section id="vSetup" class="view setup hidden">
       <div class="setup-hero rise">
         <p class="eyebrow">MBG419 · Functional Genomics · 2026/2027 Fall</p>
         <h1>Start a live classroom game</h1>

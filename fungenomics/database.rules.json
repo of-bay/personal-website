@@ -1,9 +1,13 @@
 {
   "rules": {
+    "bank": {
+      ".read": "auth != null && auth.token.email === 'ofb.bay@gmail.com' && auth.token.email_verified === true",
+      ".write": "auth != null && auth.token.email === 'ofb.bay@gmail.com' && auth.token.email_verified === true"
+    },
     "games": {
       "$code": {
         ".read": "auth != null",
-        ".write": "auth != null && (!data.exists() ? newData.child('hostUid').val() === auth.uid : data.child('hostUid').val() === auth.uid)",
+        ".write": "auth != null && auth.token.email === 'ofb.bay@gmail.com' && auth.token.email_verified === true && (!data.exists() ? newData.child('hostUid').val() === auth.uid : data.child('hostUid').val() === auth.uid)",
 
         "players": {
           "$uid": {
@@ -33,4 +37,3 @@
     }
   }
 }
-

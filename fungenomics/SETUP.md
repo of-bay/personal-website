@@ -43,7 +43,13 @@ Commit and push the website repository. GitHub Pages serves `/fungenomics/`.
 ## Jokers (one per group per game, activated from phones)
 🧪 PCR: double points · 🔀 Alt. Splicing: lock 2 answers · 🧬 PTM: change a locked answer once · ✂️ Restriction Enzyme: removes 2 wrong options from that group's screen
 
-## Editing questions
-`data/questions.json` is a copy of the desktop app's bank (figures in `figures/`, compressed JPGs).
-If you edit the desktop file, copy it again and change figure extensions to `.jpg`.
+## Instructor-only hosting
+`host.html` requires Google sign-in as **ofb.bay@gmail.com**. Students sign in anonymously and cannot create games or read answers.
+
+## Editing questions (answers are private)
+The question bank lives in the Realtime Database at `/bank` (readable only by the instructor), **not** on the public website.
+`data/questions.json` is a local, git-ignored copy used for editing and `?demo=1` testing. After editing it, upload with:
+```bash
+npx -y firebase-tools@latest database:set /bank fungenomics/data/questions.json -f --project gen-lang-client-0995306907
+```
 

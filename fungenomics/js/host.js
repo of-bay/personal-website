@@ -21,10 +21,30 @@ const cfg = { groups: 4, names: [], weeks: new Set(QUIZ1), types: new Set(TYPES)
 init();
 async function init() {
   initTheme();
-  db = await getDB();
+  db = await getDB({ host: true });
   demoBanner(db);
-  uid = await db.uid();
-  bank = await (await fetch("data/questions.json")).json();
+
+  // Instructor-only: Google sign-in as ofb.bay@gmail.com
+  const gate = (msg) => new Promise((resolve) => {
+    show("#vGate");
+    $("#gateErr").textContent = msg || ""; $("#gateErr").classList.toggle("hidden", !msg);
+    $("#signInBtn").disabled = false;
+    $("#signInBtn").onclick = () => { $("#signInBtn").disabled = true; resolve(); };
+  });
+  gate.error = (m) => { $("#gateErr").textContent = m; $("#gateErr").classList.toggle("hidden", !m); };
+  const user = await db.hostUser(gate);
+  uid = user.uid;
+  if (!db.demo) {
+    $("#signOutBtn").classList.remove("hidden");
+    $("#signOutBtn").onclick = async () => { await db.signOut(); location.reload(); };
+  }
+
+  // Answer bank: private in the database (only the instructor can read it).
+  try {
+    bank = db.demo ? await (await fetch("data/questions.json")).json() : await db.get("bank");
+    if (!bank || !bank.questions) throw new Error("Question bank not found in the database.");
+  } catch (e) { gate.error("Could not load questions: " + e.message); show("#vGate"); return; }
+  show("#vSetup");
   buildSetup();
   wireControls();
 
@@ -147,7 +167,7 @@ const jokerUsedNow = (gid, key) => game.jokers?.[gid]?.[key] === S().qKey;
 const playersIn = (gid) => Object.entries(game.players || {}).filter(([, p]) => p.group === gid);
 
 function show(id) {
-  ["#vSetup", "#vLobby", "#vQuestion", "#vBoard"].forEach((v) => $(v).classList.toggle("hidden", v !== id));
+  ["#vGate", "#vSetup", "#vLobby", "#vQuestion", "#vBoard"].forEach((v) => $(v).classList.toggle("hidden", v !== id));
 }
 
 function render() {

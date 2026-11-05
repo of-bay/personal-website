@@ -3,6 +3,8 @@
 // (localStorage + BroadcastChannel) so the game can be tested offline.
 import { firebaseConfig, DEMO_MODE } from "./config.js";
 
+export const ADMIN_EMAIL = "ofb.bay@gmail.com";
+
 const FB_VER = "10.12.2";
 let impl = null;
 
@@ -32,6 +34,8 @@ function makeDemo() {
   return {
     demo: true,
     uid: async () => uid,
+    hostUser: async () => ({ uid, email: ADMIN_EMAIL }),
+    signOut: async () => {},
     serverNow: () => Date.now(),
     get: async (p) => clone(getAt(load(), p)),
     set: async (p, v) => commit((db) => setAt(db, p, clone(v))),
@@ -46,25 +50,45 @@ function makeDemo() {
 }
 
 /* -------------------------------------------------------------- firebase */
-async function makeFirebase() {
+async function makeFirebase(opts = {}) {
   const base = `https://www.gstatic.com/firebasejs/${FB_VER}`;
   const { initializeApp } = await import(`${base}/firebase-app.js`);
-  const { getAuth, signInAnonymously, onAuthStateChanged } = await import(`${base}/firebase-auth.js`);
+  const A = await import(`${base}/firebase-auth.js`);
+  const { getAuth, signInAnonymously, onAuthStateChanged } = A;
   const D = await import(`${base}/firebase-database.js`);
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = D.getDatabase(app);
 
-  const uidPromise = new Promise((resolve, reject) => {
+  // Students: anonymous sign-in. Host: Google sign-in (see hostUser()).
+  const uidPromise = opts.host ? null : new Promise((resolve, reject) => {
     onAuthStateChanged(auth, (u) => { if (u) resolve(u.uid); });
     signInAnonymously(auth).catch(reject);
   });
+  const firstUser = new Promise((r) => { const off = onAuthStateChanged(auth, (u) => { off(); r(u); }); });
   let offset = 0;
   D.onValue(D.ref(db, ".info/serverTimeOffset"), (s) => { offset = s.val() || 0; });
 
   return {
     demo: false,
-    uid: () => uidPromise,
+    uid: async () => (uidPromise ? uidPromise : (auth.currentUser && auth.currentUser.uid)),
+    // Resolves with the signed-in instructor; `gate(show, err)` renders the sign-in UI.
+    hostUser: async (gate) => {
+      let u = await firstUser;
+      const ok = (x) => x && !x.isAnonymous && x.email === ADMIN_EMAIL && x.emailVerified;
+      while (!ok(u)) {
+        const msg = u && !u.isAnonymous ? `${u.email} is not allowed to host games.` : "";
+        if (u) await A.signOut(auth);
+        await gate(msg);  // resolves when the user clicks "Sign in"
+        try {
+          const provider = new A.GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: "select_account", login_hint: ADMIN_EMAIL });
+          u = (await A.signInWithPopup(auth, provider)).user;
+        } catch (e) { u = null; gate.error && gate.error(e.code === "auth/popup-closed-by-user" ? "" : e.message); }
+      }
+      return u;
+    },
+    signOut: () => A.signOut(auth),
     serverNow: () => Date.now() + offset,
     get: async (p) => (await D.get(D.ref(db, p))).val(),
     set: (p, v) => D.set(D.ref(db, p), v),
@@ -74,8 +98,8 @@ async function makeFirebase() {
   };
 }
 
-export async function getDB() {
-  if (!impl) impl = DEMO_MODE ? makeDemo() : await makeFirebase();
+export async function getDB(opts = {}) {
+  if (!impl) impl = DEMO_MODE ? makeDemo() : await makeFirebase(opts);
   return impl;
 }
 
