@@ -16,10 +16,18 @@ body.play main { max-width: 640px; margin: 0 auto; padding: 1.1rem 1rem calc(6.5
 .field input:focus { border-color: var(--accent); outline: none; }
 .code-in { text-transform: uppercase; letter-spacing: .35em; font-size: 1.6rem !important; text-align: center; }
 .group-pick { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; }
+.group-pick > p { grid-column: 1 / -1; }
 .group-pick button { padding: .9em .6em; border-radius: var(--radius-s); background: var(--surface-2); border: 2px solid var(--border); font-weight: 700; text-align: center; }
 .group-pick button small { display: block; font-weight: 500; color: var(--text-3); font-size: .8rem; margin-top: .15rem; }
 .group-pick button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
 .err { color: var(--bad); font-weight: 600; text-align: center; }
+.nick-row { display: flex; gap: .5rem; }
+.nick-row input { flex: 1; min-width: 0; }
+.nick-row .btn { flex: none; font-size: 1.3rem; padding: 0 .9rem; }
+.hint { font-weight: 500; color: var(--text-2); font-size: .85rem; }
+.privacy { font-size: .85rem; color: var(--text-2); border-top: 1px solid var(--border); padding-top: .8rem; }
+.privacy summary { cursor: pointer; font-weight: 700; color: var(--text-2); list-style-position: inside; }
+.privacy p { margin-top: .6rem; line-height: 1.5; }
 
 .big-emoji { font-size: 4rem; animation: float 3s ease-in-out infinite; }
 @keyframes float { 50% { transform: translateY(-8px); } }

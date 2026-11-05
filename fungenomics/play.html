@@ -33,16 +33,25 @@
           <span>Game code</span>
           <input id="codeIn" class="mono code-in" maxlength="4" inputmode="text" autocapitalize="characters" placeholder="ABCD" required>
         </label>
-        <label class="field">
-          <span>Your name</span>
-          <input id="nameIn" maxlength="24" placeholder="e.g. Ayşe" required>
-        </label>
+        <div class="field">
+          <span>Nickname · Takma ad</span>
+          <div class="nick-row">
+            <input id="nameIn" maxlength="24" placeholder="e.g. Curious Ribosome" required aria-describedby="nickHint">
+            <button type="button" id="rerollBtn" class="btn icon" title="New random nickname" aria-label="New random nickname">🎲</button>
+          </div>
+          <small id="nickHint" class="hint">Please don't use your real name. · Lütfen gerçek adınızı kullanmayın.</small>
+        </div>
         <div class="field">
           <span>Choose your group</span>
           <div id="groupPick" class="group-pick"><p class="muted">Enter the game code to see groups…</p></div>
         </div>
         <button id="joinBtn" class="btn primary lg" type="submit" disabled>Join →</button>
         <p id="joinErr" class="err hidden"></p>
+        <details class="privacy">
+          <summary>🔒 Privacy · Gizlilik (KVKK)</summary>
+          <p><b>EN:</b> Only your nickname, group and your group's answers are used, solely to run this classroom game. They are stored temporarily in Google Firebase (servers in Belgium, EU) and are deleted when the instructor closes the game; data from unfinished games is cleaned up automatically. No real name, student number or account is required. Questions: ofb.bay@gmail.com</p>
+          <p><b>TR:</b> Yalnızca takma adınız, grubunuz ve grubunuzun cevapları, sadece bu sınıf içi oyunu yürütmek amacıyla kullanılır. Bu veriler geçici olarak Google Firebase'de (sunucular Belçika, AB) saklanır ve eğitmen oyunu kapattığında silinir; yarım kalan oyunların verileri otomatik olarak temizlenir. Gerçek ad, öğrenci numarası veya hesap gerekmez. Sorular için: ofb.bay@gmail.com</p>
+        </details>
       </form>
     </section>
 

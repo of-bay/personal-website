@@ -21,7 +21,9 @@ async function init() {
 
   const params = new URLSearchParams(location.search);
   const urlCode = (params.get("code") || "").toUpperCase();
-  $("#nameIn").value = localStorage.getItem("fg-name") || "";
+  localStorage.removeItem("fg-name");   // old builds stored real names
+  $("#nameIn").value = localStorage.getItem("fg-nick") || randomNick();
+  $("#rerollBtn").addEventListener("click", () => { $("#nameIn").value = randomNick(); validate(); });
   if (urlCode) { $("#codeIn").value = urlCode; $("#codeField").classList.add("hidden"); watch(urlCode); }
   $("#codeIn").addEventListener("input", (e) => {
     e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -34,6 +36,14 @@ async function init() {
 }
 
 /* ================================================================ join */
+const ADJ = ["Curious", "Clever", "Speedy", "Brave", "Mighty", "Lucky", "Sneaky", "Happy", "Bold", "Cosmic", "Fuzzy", "Glowing", "Silent", "Jolly", "Witty", "Tiny"];
+const NOUN = ["Ribosome", "Codon", "Plasmid", "Helicase", "Nucleotide", "Primer", "Exon", "Intron", "Contig", "Polymerase", "Histone", "Operon", "Allele", "Genome", "Read", "K-mer"];
+const EMO = ["🧬", "🧪", "🔬", "🦠", "🧫", "⚗️"];
+function randomNick() {
+  const r = (a) => a[Math.floor(Math.random() * a.length)];
+  return `${r(ADJ)} ${r(NOUN)} ${r(EMO)}`;
+}
+
 function watch(c) {
   if (c === code) return;
   code = c;
@@ -49,7 +59,7 @@ async function join(e) {
   e.preventDefault();
   const name = $("#nameIn").value.trim().slice(0, 24);
   if (!game || !pickedGroup || !name) return;
-  localStorage.setItem("fg-name", name);
+  localStorage.setItem("fg-nick", name);
   try {
     await db.set(`games/${code}/players/${uid}`, { name, group: pickedGroup, at: db.serverNow() });
   } catch (err) { showErr("Could not join: " + err.message); }

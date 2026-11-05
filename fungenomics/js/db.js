@@ -137,7 +137,7 @@ export function demoBanner(db) {
   if (!db.demo) return;
   const b = document.createElement("div");
   b.className = "demo-banner";
-  b.innerHTML = "🧪 <b>Demo mode</b> — works only between tabs on this computer. Add your Firebase config in <code>js/config.js</code> for real phones.";
+  b.innerHTML = "🧪 <b>Demo mode</b> — works only between tabs on this computer. Remove <code>?demo=1</code> from the address to play with real phones.";
   document.body.prepend(b);
 }
 
