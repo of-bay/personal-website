@@ -1,7 +1,7 @@
 // FunGenomics Live — real-time data layer.
 // Same tiny API for Firebase Realtime Database and a local demo backend
 // (localStorage + BroadcastChannel) so the game can be tested offline.
-import { firebaseConfig, DEMO_MODE } from "./config.js";
+import { firebaseConfig, DEMO_MODE } from "./config.js?v=5";
 
 export const ADMIN_EMAIL = "ofb.bay@gmail.com";
 
@@ -60,10 +60,24 @@ async function makeFirebase(opts = {}) {
   const auth = getAuth(app);
   const db = D.getDatabase(app);
 
-  // Students: anonymous sign-in. Host: Google sign-in (see hostUser()).
-  const uidPromise = opts.host ? null : new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, (u) => { if (u) resolve(u.uid); });
-    signInAnonymously(auth).catch(reject);
+  // Students: anonymous sign-in with local fallback (so Private Browsing / QR WebViews never hang).
+  // Host: Google sign-in (see hostUser()).
+  let fallbackUid = null;
+  try { fallbackUid = localStorage.getItem("fg-uid") || sessionStorage.getItem("fg-uid"); } catch {}
+  if (!fallbackUid) {
+    fallbackUid = "s_" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
+    try { localStorage.setItem("fg-uid", fallbackUid); } catch {}
+    try { sessionStorage.setItem("fg-uid", fallbackUid); } catch {}
+  }
+  const uidPromise = opts.host ? null : new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(fallbackUid), 2500);
+    try {
+      onAuthStateChanged(auth, (u) => { if (u) { clearTimeout(timer); resolve(u.uid); } });
+      signInAnonymously(auth).catch(() => { clearTimeout(timer); resolve(fallbackUid); });
+    } catch {
+      clearTimeout(timer);
+      resolve(fallbackUid);
+    }
   });
   const firstUser = new Promise((r) => { const off = onAuthStateChanged(auth, (u) => { off(); r(u); }); });
   let offset = 0;

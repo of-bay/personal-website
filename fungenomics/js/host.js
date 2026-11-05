@@ -1,5 +1,5 @@
 // FunGenomics Live — host controller (projector screen)
-import { getDB, JOKERS, LETTERS, initTheme, esc, demoBanner, normText, burstConfetti, synthFX } from "./db.js";
+import { getDB, JOKERS, LETTERS, initTheme, esc, demoBanner, normText, burstConfetti, synthFX } from "./db.js?v=5";
 
 const $ = (s) => document.querySelector(s);
 const QUIZ1 = ["2.1", "2.2", "3", "4"];

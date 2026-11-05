@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/fg.css">
+  <link rel="stylesheet" href="css/fg.css?v=5">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧬%3C/text%3E%3C/svg%3E">
   <style>
     main { max-width: 560px; margin: 0 auto; padding: 8vh 1.2rem 3rem; text-align: center; }
@@ -38,7 +38,7 @@
     <a class="host-link" href="host.html">Instructor? Host a game →</a>
   </main>
   <script type="module">
-    import { initTheme } from "./js/db.js";
+    import { initTheme } from "./js/db.js?v=5";
     initTheme();
     const i = document.querySelector("input");
     i.addEventListener("input", () => (i.value = i.value.toUpperCase().replace(/[^A-Z0-9]/g, "")));

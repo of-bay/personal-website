@@ -1,5 +1,5 @@
 // FunGenomics Live — student phone client
-import { getDB, JOKERS, RULES, WEEK_TITLES, LETTERS, initTheme, esc, demoBanner, burstConfetti } from "./db.js";
+import { getDB, JOKERS, RULES, WEEK_TITLES, LETTERS, initTheme, esc, demoBanner, burstConfetti } from "./db.js?v=5";
 
 const $ = (s) => document.querySelector(s);
 const CIRC = 263.9;
@@ -20,16 +20,20 @@ let vibratedShortKey = null;
 init();
 async function init() {
   initTheme();
-  db = await getDB();
-  demoBanner(db);
-  uid = await db.uid();
+  ensureDomNodes();
 
   const params = new URLSearchParams(location.search);
-  const urlCode = (params.get("code") || "").toUpperCase();
-  localStorage.removeItem("fg-name");   // old builds stored real names
-  $("#nameIn").value = localStorage.getItem("fg-nick") || randomNick();
-  $("#rerollBtn").addEventListener("click", () => { $("#nameIn").value = randomNick(); validate(); });
-  if (urlCode) { $("#codeIn").value = urlCode; $("#codeField").classList.add("hidden"); watch(urlCode); }
+  const urlCode = (params.get("code") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  try { localStorage.removeItem("fg-name"); } catch {}
+  let savedNick = "";
+  try { savedNick = localStorage.getItem("fg-nick") || ""; } catch {}
+  $("#nameIn").value = savedNick || randomNick();
+  $("#rerollBtn")?.addEventListener("click", () => { $("#nameIn").value = randomNick(); validate(); });
+  if (urlCode) {
+    $("#codeIn").value = urlCode;
+    $("#codeField")?.classList.add("hidden");
+    $("#groupPick").innerHTML = `<p class="muted">🔄 Connecting to game <b class="mono">${esc(urlCode)}</b>…</p>`;
+  }
   $("#codeIn").addEventListener("input", (e) => {
     e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
     if (e.target.value.length === 4) watch(e.target.value);
@@ -38,6 +42,30 @@ async function init() {
   $("#joinForm").addEventListener("submit", join);
   $("#lockBtn").addEventListener("click", lock);
   setInterval(tick, 250);
+
+  try {
+    db = await getDB();
+    demoBanner(db);
+    uid = await db.uid();
+    const curCode = ($("#codeIn").value || urlCode || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (curCode.length === 4) watch(curCode, true);
+  } catch (err) {
+    showErr("Connection error: " + (err?.message || err));
+  }
+}
+
+function ensureDomNodes() {
+  const vw = $("#vWait");
+  if (vw && !$("#rulesBox")) {
+    const d = document.createElement("div");
+    d.id = "rulesBox"; d.className = "card rules-box hidden";
+    vw.appendChild(d);
+  }
+  if (vw && !$("#studyBox")) {
+    const d = document.createElement("div");
+    d.id = "studyBox"; d.className = "card study-sheet hidden";
+    vw.appendChild(d);
+  }
 }
 
 /* ================================================================ join */
@@ -49,22 +77,27 @@ function randomNick() {
   return `${r(ADJ)} ${r(NOUN)} ${r(EMO)}`;
 }
 
-function watch(c) {
-  if (c === code) return;
+function watch(c, force = false) {
+  if (!force && c === code && unlisten) return;
   code = c;
+  if (!db) {
+    $("#groupPick").innerHTML = `<p class="muted">🔄 Connecting to game <b class="mono">${esc(c)}</b>…</p>`;
+    return;
+  }
   unlisten && unlisten();
+  $("#groupPick").innerHTML = `<p class="muted">🔄 Loading game <b class="mono">${esc(c)}</b>…</p>`;
   unlisten = db.listen(`games/${c}`, (g) => { game = g; render(); });
 }
 
 function validate() {
-  $("#joinBtn").disabled = !(game && pickedGroup && $("#nameIn").value.trim());
+  $("#joinBtn").disabled = !(db && uid && game && pickedGroup && $("#nameIn").value.trim());
 }
 
 async function join(e) {
   e.preventDefault();
   const name = $("#nameIn").value.trim().slice(0, 24);
-  if (!game || !pickedGroup || !name) return;
-  localStorage.setItem("fg-nick", name);
+  if (!db || !uid || !game || !pickedGroup || !name) return;
+  try { localStorage.setItem("fg-nick", name); } catch {}
   try {
     await db.set(`games/${code}/players/${uid}`, { name, group: pickedGroup, at: db.serverNow() });
   } catch (err) { showErr("Could not join: " + err.message); }
