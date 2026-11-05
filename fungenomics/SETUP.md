@@ -53,3 +53,8 @@ The question bank lives in the Realtime Database at `/bank` (readable only by th
 npx -y firebase-tools@latest database:set /bank fungenomics/data/questions.json -f --project gen-lang-client-0995306907
 ```
 
+
+## Data retention (nothing is kept long-term)
+- When a game ends and you click **New game (clears this one)**, that game (names, answers, scores) is deleted immediately.
+- Any game older than **6 hours** (e.g. a tab you just closed) is deleted automatically the next time you sign in to `host.html`.
+- Only the question bank (`/bank`) stays in the database.

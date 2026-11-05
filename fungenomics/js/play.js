@@ -10,6 +10,7 @@ let pickedGroup = null;
 let sel = [];             // local selection before locking
 let selKey = null;        // question the selection belongs to
 let changing = false;     // PTM change in progress
+let wasIn = false;        // joined a game that may later be deleted
 
 init();
 async function init() {
@@ -67,6 +68,9 @@ const usedNow = (key) => used(key) === S().qKey;
 function show(id) { ["#vJoin", "#vWait", "#vQ"].forEach((v) => $(v).classList.toggle("hidden", v !== id)); }
 
 function render() {
+  if (!game && wasIn) {
+    renderEnded(); return;
+  }
   if (!game) {
     if (code && code.length === 4) {
       show("#vJoin"); $("#codeField").classList.remove("hidden");
@@ -75,6 +79,7 @@ function render() {
     validate(); return;
   }
   if (!me()) return renderJoin();
+  wasIn = true;
 
   const g = myGroup();
   $("#meChip").textContent = `${me().name} · ${g?.name || ""}`;
@@ -85,6 +90,16 @@ function render() {
   else if (ph === "board") renderWait("📊", "Leaderboard", "Next question coming up…", false, true);
   else if (ph === "over") renderWait("🏆", "Game over!", finalLine(), false, true);
   else renderQuestion();
+}
+
+function renderEnded() {
+  ["#vJoin", "#vQ"].forEach((v) => $(v).classList.add("hidden"));
+  $("#vWait").classList.remove("hidden");
+  $("#actionBar").classList.add("hidden");
+  $("#waitEmoji").textContent = "👋";
+  $("#waitTitle").textContent = "Thanks for playing!";
+  $("#waitText").innerHTML = "This game has been closed by the instructor.";
+  $("#teamMates").innerHTML = ""; $("#miniBoard").innerHTML = "";
 }
 
 function renderJoin() {

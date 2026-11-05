@@ -45,6 +45,7 @@ async function init() {
     if (!bank || !bank.questions) throw new Error("Question bank not found in the database.");
   } catch (e) { gate.error("Could not load questions: " + e.message); show("#vGate"); return; }
   show("#vSetup");
+  cleanupOldGames();
   buildSetup();
   wireControls();
 
@@ -313,7 +314,7 @@ function renderControls() {
   else if (live || ph === "closed") pb.textContent = "Reveal answer ✓";
   else if (ph === "revealed") pb.textContent = last ? "Final results 🏆" : "Leaderboard →";
   else if (ph === "board") pb.textContent = "Next question ▶";
-  else if (ph === "over") pb.textContent = "New game";
+  else if (ph === "over") pb.textContent = "New game (clears this one)";
 
   // bonus defence awarding
   const box = $("#bonusAward");
@@ -359,7 +360,7 @@ function primary() {
     else db.update(`games/${code}/state`, { phase: "board" });
   }
   else if (ph === "board") nextQuestion();
-  else if (ph === "over") { localStorage.removeItem("fg-host-code"); location.href = location.pathname; }
+  else if (ph === "over") { finishAndDelete(); }
 }
 
 function buildOptions(q) {
@@ -456,6 +457,27 @@ function tick() {
     lastTick = secs;
     if (ms <= 0) db.update(`games/${code}/state`, { phase: "closed" });
   }
+}
+
+/* ============================================================ cleanup */
+// Nothing is kept long-term: a game is deleted when you start a new one,
+// and any game older than 6 hours is removed the next time you sign in.
+const MAX_AGE_MS = 6 * 60 * 60 * 1000;
+async function cleanupOldGames() {
+  if (db.demo) return;
+  try {
+    const all = (await db.get("games")) || {};
+    const now = db.serverNow(), keep = localStorage.getItem("fg-host-code");
+    const old = Object.entries(all).filter(([c, g]) => c !== keep && (!g.createdAt || now - g.createdAt > MAX_AGE_MS));
+    await Promise.all(old.map(([c]) => db.remove(`games/${c}`)));
+    if (old.length) console.info(`Removed ${old.length} old game(s).`);
+  } catch (e) { console.warn("Cleanup skipped:", e.message); }
+}
+async function finishAndDelete() {
+  unlisten && unlisten();
+  await db.remove(`games/${code}`).catch(() => {});
+  localStorage.removeItem("fg-host-code");
+  location.href = location.pathname;
 }
 
 /* ============================================================== helpers */
