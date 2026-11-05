@@ -57,6 +57,10 @@ h3 { font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; color: 
 .lg-card li { background: var(--surface-2); border-radius: 8px; padding: .25em .6em; font-weight: 600; font-size: .95rem; display: inline-flex; gap: .4em; align-items: center; }
 .lg-card li button { color: var(--text-3); font-size: .85em; }
 .lg-card li button:hover { color: var(--bad); }
+.lg-card li.read { background: var(--good-bg); }
+.ready-count { font-weight: 600; margin-top: .2rem; }
+.own-t { font-size: .85em; color: var(--warn); margin-left: .3em; }
+.own-t.low { color: var(--bad); }
 .lg-card .empty { color: var(--text-3); font-style: italic; }
 
 /* ---------- question ---------- */

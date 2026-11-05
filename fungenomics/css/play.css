@@ -6,7 +6,7 @@ body.play #meChip { font-size: .8rem; max-width: 46vw; }
 body.play main { max-width: 640px; margin: 0 auto; padding: 1.1rem 1rem calc(6.5rem + env(safe-area-inset-bottom)); }
 .pad { padding: 1.3rem; }
 .stack { display: grid; gap: 1.1rem; }
-.center { text-align: center; display: grid; justify-items: center; gap: .6rem; padding-top: 12vh; }
+.center { text-align: center; display: grid; justify-items: center; gap: .6rem; padding-top: 6vh; }
 .hero { margin: .6rem 0 1.2rem; }
 .hero h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -.02em; }
 
@@ -52,6 +52,7 @@ body.play main { max-width: 640px; margin: 0 auto; padding: 1.1rem 1rem calc(6.5
 
 .lock-banner { display: flex; gap: .7rem; align-items: center; padding: .8rem 1rem; border-radius: var(--radius); margin-bottom: .9rem;
   background: var(--good-bg); color: var(--good); font-weight: 700; border: 1px solid color-mix(in srgb, var(--good) 40%, transparent); }
+.lock-banner.warn { background: var(--warn-bg); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
 .lock-banner.closed { background: var(--surface-2); color: var(--text-2); border-color: var(--border); }
 .lock-banner .btn { margin-left: auto; padding: .45em .8em; font-size: .9rem; }
 
@@ -65,12 +66,28 @@ body.play main { max-width: 640px; margin: 0 auto; padding: 1.1rem 1rem calc(6.5
 #resultBox .explain { margin-top: .8rem; font-size: 1rem; }
 
 .joker-bar { margin-top: 1.4rem; }
-.jokers { display: grid; grid-template-columns: repeat(4, 1fr); gap: .45rem; margin-top: .5rem; }
+.jokers { display: grid; grid-template-columns: repeat(3, 1fr); gap: .45rem; margin-top: .5rem; }
 .jk { display: grid; justify-items: center; gap: .15rem; padding: .6rem .3rem; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); font-size: .72rem; font-weight: 700; color: var(--text-2); line-height: 1.15; text-align: center; }
 .jk .e { font-size: 1.5rem; }
 .jk.active { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); }
 .jk:disabled:not(.active) { opacity: .35; }
 
+.rules-link { text-align: center; color: var(--accent); font-weight: 700; text-decoration: none; }
+.rules-box { width: 100%; text-align: left; padding: 1.2rem; margin-top: 1.2rem; display: grid; gap: .8rem; }
+.rules-box h3 { font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.rules-box .small { font-size: .88rem; }
+.rules { list-style: none; display: grid; gap: .55rem; }
+.rules li { display: grid; grid-template-columns: 1.8rem 1fr; gap: .4rem; line-height: 1.4; font-size: .95rem; }
+.jk-list { display: grid; gap: .5rem; }
+.jk-card { display: grid; grid-template-columns: auto auto 1fr; gap: .7rem; align-items: start; padding: .8rem .9rem; border-radius: 12px;
+  background: var(--surface-2); border: 2px solid var(--border); cursor: pointer; }
+.jk-card.done { border-color: var(--good); background: var(--good-bg); }
+.jk-card input { width: 1.4rem; height: 1.4rem; margin-top: .15rem; accent-color: var(--good); }
+.jk-card .e { font-size: 1.6rem; line-height: 1; }
+.jk-card .t { display: grid; gap: .15rem; font-size: .92rem; line-height: 1.35; }
+.jk-card .t b { font-size: 1rem; }
+.jk-card small { color: var(--text-3); font-weight: 600; }
+.all-read { text-align: center; font-weight: 700; color: var(--good); }
 .action-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: .8rem 1rem calc(.8rem + env(safe-area-inset-bottom));
   background: color-mix(in srgb, var(--bg) 88%, transparent); border-top: 1px solid var(--border); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .action-bar .btn { max-width: 640px; margin: 0 auto; display: flex; }

@@ -204,10 +204,15 @@ function renderLobby() {
   }
   const n = Object.keys(game.players || {}).length;
   $("#playerCount").textContent = n;
+  const ready = Object.values(game.players || {}).filter((p) => Object.keys(JOKERS).every((k) => p.read?.[k])).length;
+  $("#readyCount").textContent = n ? `📖 ${ready} / ${n} have read the rules` : "";
   $("#lobbyGroups").innerHTML = groups().map((g) => {
     const ps = playersIn(g.id);
     return `<div class="card lg-card"><h4>${esc(g.name)} <span class="pill">${ps.length}</span></h4>
-      <ul>${ps.length ? ps.map(([id, p]) => `<li>${esc(p.name)} <button data-kick="${id}" title="Remove">✕</button></li>`).join("") : `<li class="empty">Waiting…</li>`}</ul></div>`;
+      <ul>${ps.length ? ps.map(([id, p]) => {
+        const n = Object.keys(JOKERS).filter((k) => p.read?.[k]).length, all = n === Object.keys(JOKERS).length;
+        return `<li class="${all ? "read" : ""}" title="${all ? "Read all rules" : `Read ${n} of ${Object.keys(JOKERS).length} jokers`}">${all ? "📖 " : ""}${esc(p.name)} <button data-kick="${id}" title="Remove">✕</button></li>`;
+      }).join("") : `<li class="empty">Waiting…</li>`}</ul></div>`;
   }).join("");
   $("#lobbyGroups").onclick = (e) => { const k = e.target.dataset.kick; if (k) db.remove(`games/${code}/players/${k}`); };
 }
@@ -266,7 +271,9 @@ function renderQuestion() {
       const r = res[g.id];
       delta = r.pending ? `<span class="delta pill warn">defend</span>` : r.pts ? `<span class="delta" style="color:var(--good)">+${r.pts}</span>` : "";
     }
-    return `<div class="gs ${locked ? "locked" : ""}"><span class="dot"></span><span>${esc(g.name)} <span class="jk">${jk}</span></span>
+    const own = st.phase === "question" && st.deadline?.[g.id] != null && !locked
+      ? `<span class="own-t mono" data-g="${g.id}"></span>` : "";
+    return `<div class="gs ${locked ? "locked" : ""}"><span class="dot"></span><span>${esc(g.name)} <span class="jk">${jk}</span>${own}</span>
       <span class="score">${game.scores?.[g.id] ?? 0}${delta}</span></div>`;
   }).join("");
 
@@ -376,7 +383,7 @@ async function nextQuestion() {
     phase: "question", qIndex: i, qKey: `q${i}`, total: deck.length,
     question: { id: q.id, week: String(q.week), week_title: q.week_title, type: q.type, is_bonus: !!q.is_bonus,
                 prompt: q.prompt, figure: q.figure_asset || null, options: buildOptions(q) },
-    endsAt: db.serverNow() + game.config.timer * 1000, duration: game.config.timer * 1000, paused: false,
+    endsAt: db.serverNow() + game.config.timer * 1000, duration: game.config.timer * 1000, paused: false, pausedAt: null,
   });
 }
 
@@ -413,33 +420,58 @@ async function awardBonus(gid, v) {
   if (pts) play("award");
 }
 
-function remainingMs() {
-  const st = S();
-  return st.paused ? st.remaining : Math.max(0, st.endsAt - db.serverNow());
+// Time model: shared `endsAt`, optional per-group `deadline[gid]` (Telomerase / Telomere Shortening).
+const nowT = () => (S().paused ? S().pausedAt : db.serverNow());
+const groupEnd = (gid) => S().deadline?.[gid] ?? S().endsAt;
+const groupLeft = (gid) => Math.max(0, groupEnd(gid) - nowT());
+function remainingMs() {            // longest time any group still has
+  return Math.max(0, ...groups().map((g) => groupLeft(g.id)));
+}
+function shifted(d) {
+  const out = { endsAt: S().endsAt + d };
+  Object.entries(S().deadline || {}).forEach(([g, t]) => (out[`deadline/${g}`] = t + d));
+  return out;
 }
 function togglePause() {
   const st = S();
-  if (st.paused) db.update(`games/${code}/state`, { paused: false, endsAt: db.serverNow() + st.remaining, remaining: null });
-  else db.update(`games/${code}/state`, { paused: true, remaining: remainingMs() });
+  if (st.paused) db.update(`games/${code}/state`, { ...shifted(db.serverNow() - st.pausedAt), paused: false, pausedAt: null });
+  else db.update(`games/${code}/state`, { paused: true, pausedAt: db.serverNow() });
 }
 function addTime(s) {
   const st = S();
-  if (st.phase === "closed") return db.update(`games/${code}/state`, { phase: "question", paused: false, endsAt: db.serverNow() + s * 1000 });
-  if (st.paused) db.update(`games/${code}/state`, { remaining: st.remaining + s * 1000 });
-  else db.update(`games/${code}/state`, { endsAt: st.endsAt + s * 1000 });
+  if (st.phase === "closed") return db.update(`games/${code}/state`, { phase: "question", paused: false, pausedAt: null, endsAt: db.serverNow() + s * 1000, deadline: null });
+  db.update(`games/${code}/state`, shifted(s * 1000));
 }
 
-// Restriction Enzyme: host (who knows the answer) cuts 2 wrong options for that group.
+// Host is authoritative for jokers that need the answer or change timers.
+const seenJokers = new Set();
 function handleJokers() {
   const st = S();
   if (st.phase !== "question" || !st.question) return;
   const q = deck[st.qIndex];
+  const upd = {};
+  const dl = { ...(st.deadline || {}) };
+  const end = (gid) => dl[gid] ?? st.endsAt;
   groups().forEach((g) => {
-    if (jokerUsedNow(g.id, "re") && !st.cut?.[g.id]) {
-      const wrong = shuffle(st.question.options.filter((o) => o !== q.answer)).slice(0, 2);
-      db.set(`games/${code}/state/cut/${g.id}`, wrong);
-    }
+    Object.keys(JOKERS).forEach((k) => {
+      if (!jokerUsedNow(g.id, k)) return;
+      const id = `${st.qKey}:${g.id}:${k}`;
+      if (!seenJokers.has(id)) { seenJokers.add(id); toast(`${JOKERS[k].emoji} ${g.name} used ${JOKERS[k].name}!`); play("reveal"); }
+      if (st.applied?.[`${g.id}_${k}`]) return;
+      if (k === "re") {
+        upd[`cut/${g.id}`] = shuffle(st.question.options.filter((o) => o !== q.answer)).slice(0, 2);
+      } else if (k === "tel") {
+        dl[g.id] = end(g.id) + 15000;
+      } else if (k === "sho") {
+        const cap = nowT() + 10000;
+        groups().forEach((h) => { if (h.id !== g.id) dl[h.id] = Math.min(end(h.id), cap); });
+      } else return;
+      upd[`applied/${g.id}_${k}`] = true;
+    });
   });
+  if (!Object.keys(upd).length) return;
+  Object.entries(dl).forEach(([g, t]) => (upd[`deadline/${g}`] = t));
+  db.update(`games/${code}/state`, upd);
 }
 
 /* ================================================================ timer */
@@ -452,6 +484,11 @@ function tick() {
   $("#timer .num").textContent = secs;
   $("#timer .bar").style.strokeDashoffset = CIRC * (1 - frac);
   $("#timer").classList.toggle("low", secs <= 5);
+  document.querySelectorAll(".own-t").forEach((el) => {
+    const left = Math.ceil(groupLeft(el.dataset.g) / 1000);
+    el.textContent = left > 0 ? ` ⏱ ${left}s` : " ⏱ 0";
+    el.classList.toggle("low", left <= 5);
+  });
   if (st.phase === "question" && !st.paused) {
     if (secs <= 5 && secs > 0 && secs !== lastTick) play("tick");
     lastTick = secs;

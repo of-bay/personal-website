@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to play — FunGenomics Live</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/fg.css">
+  <link rel="stylesheet" href="css/play.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧬%3C/text%3E%3C/svg%3E">
+  <style>
+    body.play main { padding-bottom: 3rem; }
+    h1 { font-size: 2.1rem; font-weight: 800; letter-spacing: -.02em; margin: .4rem 0 1rem; }
+    .jk-card { grid-template-columns: auto 1fr; cursor: default; }
+    .score { display: grid; gap: .3rem; font-size: .95rem; }
+  </style>
+</head>
+<body class="play">
+  <header class="topbar">
+    <a class="brand" href="./" style="text-decoration:none;color:inherit">🧬 Fun<span class="dna">Genomics</span></a>
+    <div class="spacer"></div>
+    <button data-theme-toggle class="btn icon ghost" aria-label="Toggle theme">☀️</button>
+  </header>
+  <main>
+    <p class="eyebrow">MBG419 · Functional Genomics</p>
+    <h1>How to play</h1>
+    <div class="card rules-box" style="margin-top:0">
+      <h3>📖 Rules</h3>
+      <ol class="rules" id="rules"></ol>
+      <h3>🏆 Scoring</h3>
+      <div class="score">
+        <div>✅ Correct answer: <b>1 point</b></div>
+        <div>🔥 Bonus question, correct + strong defence: <b>2 points</b> · partial defence: <b>1 point</b></div>
+        <div>🧪 PCR Amplification doubles your points for that question</div>
+        <div>❌ Wrong or no answer: <b>0 points</b></div>
+      </div>
+      <h3>🃏 Jokers <span class="pill">once per group per game</span></h3>
+      <div class="jk-list" id="jokers"></div>
+      <p class="muted small">Tip: discuss quietly. Other groups can hear you!</p>
+    </div>
+    <p style="text-align:center;margin-top:1.4rem"><a class="btn primary lg" href="./">Join a game →</a></p>
+  </main>
+  <script type="module">
+    import { JOKERS, RULES, initTheme, esc } from "./js/db.js";
+    initTheme();
+    document.getElementById("rules").innerHTML = RULES.map(([e, t]) => `<li><span>${e}</span><span>${esc(t)}</span></li>`).join("");
+    document.getElementById("jokers").innerHTML = Object.values(JOKERS).map((j) =>
+      `<div class="jk-card"><span class="e">${j.emoji}</span><span class="t"><b>${esc(j.name)}</b><span>${esc(j.desc)}</span><small>When: ${esc(j.when)}</small></span></div>`).join("");
+  </script>
+</body>
+</html>

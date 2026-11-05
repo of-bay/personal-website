@@ -105,11 +105,34 @@ export async function getDB(opts = {}) {
 
 /* ---------------------------------------------------------------- shared */
 export const JOKERS = {
-  pcr:  { emoji: "🧪", name: "PCR Amplification",   desc: "Double points this round if your group is correct." },
-  alt:  { emoji: "🔀", name: "Alternative Splicing", desc: "Lock TWO answers — if either is correct you score." },
-  ptm:  { emoji: "🧬", name: "PTM",                  desc: "Change your locked answer once this round." },
-  re:   { emoji: "✂️", name: "Restriction Enzyme",   desc: "Cuts away two wrong options from your screen." },
+  pcr: { emoji: "🧪", name: "PCR Amplification", short: "PCR",
+         desc: "Doubles your group's points for this question if your answer is correct.",
+         when: "Before your group locks an answer." },
+  alt: { emoji: "🔀", name: "Alternative Splicing", short: "Alt. Splicing",
+         desc: "Your group may lock TWO answers. If either one is correct, you score.",
+         when: "Before your group locks an answer." },
+  ptm: { emoji: "🧬", name: "Post-Translational Modification", short: "PTM",
+         desc: "Change your group's locked answer once.",
+         when: "After your group has locked an answer, while time remains." },
+  re:  { emoji: "✂️", name: "Restriction Enzyme", short: "Restr. Enzyme",
+         desc: "Cuts away two wrong options from your group's screen.",
+         when: "Before your group locks an answer." },
+  sho: { emoji: "⏳", name: "Telomere Shortening", short: "Telomere Short.",
+         desc: "Every OTHER group is left with only 10 seconds to lock their answer.",
+         when: "While more than 10 seconds remain." },
+  tel: { emoji: "🧲", name: "Telomerase", short: "Telomerase",
+         desc: "Adds 15 extra seconds for YOUR group only.",
+         when: "Any time before your group's time runs out." },
 };
+
+export const RULES = [
+  ["🎯", "The instructor shows a question on the big screen. It also appears on your phone with 6 options."],
+  ["👥", "You play as a group. The first group member to press 🔒 Lock decides the group's answer, so agree before you lock!"],
+  ["⏱️", "Lock your answer before the timer runs out. No answer = no points."],
+  ["✅", "The instructor reveals the answer. Correct = 1 point. 🔥 Bonus questions = up to 2 points after your group verbally defends its answer."],
+  ["🃏", "Each group has 6 jokers. Each joker can be used only once per game, by any member of the group."],
+];
+
 
 export const LETTERS = ["A", "B", "C", "D", "E", "F"];
 

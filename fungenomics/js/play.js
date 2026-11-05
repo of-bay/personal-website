@@ -1,5 +1,5 @@
 // FunGenomics Live — student phone client
-import { getDB, JOKERS, LETTERS, initTheme, esc, demoBanner } from "./db.js";
+import { getDB, JOKERS, RULES, LETTERS, initTheme, esc, demoBanner } from "./db.js";
 
 const $ = (s) => document.querySelector(s);
 const CIRC = 263.9;
@@ -74,6 +74,11 @@ const myGroup = () => (game?.config?.groups || []).find((g) => g.id === me()?.gr
 const myPick = () => game?.picks?.[S().qKey]?.[me()?.group];
 const used = (key) => game?.jokers?.[me()?.group]?.[key];
 const usedNow = (key) => used(key) === S().qKey;
+const nowT = () => (S().paused ? S().pausedAt : db.serverNow());
+const myEnd = () => S().deadline?.[me()?.group] ?? S().endsAt;
+const myLeft = () => (S().phase === "question" ? Math.max(0, myEnd() - nowT()) : 0);
+const hasRead = (k) => !!me()?.read?.[k];
+let expiredKey = null;
 
 function show(id) { ["#vJoin", "#vWait", "#vQ"].forEach((v) => $(v).classList.toggle("hidden", v !== id)); }
 
@@ -109,7 +114,7 @@ function renderEnded() {
   $("#waitEmoji").textContent = "👋";
   $("#waitTitle").textContent = "Thanks for playing!";
   $("#waitText").innerHTML = "This game has been closed by the instructor.";
-  $("#teamMates").innerHTML = ""; $("#miniBoard").innerHTML = "";
+  $("#teamMates").innerHTML = ""; $("#miniBoard").innerHTML = ""; $("#rulesBox").classList.add("hidden");
 }
 
 function renderJoin() {
@@ -146,6 +151,30 @@ function renderWait(emoji, title, text, mates, board) {
   $("#teamMates").innerHTML = mates ? ms.map((p) => `<span>${esc(p.name)}</span>`).join("") : "";
   $("#miniBoard").innerHTML = board ? rankedGroups().map((g, i) =>
     `<div class="mb-row ${g.id === me().group ? "me" : ""}"><span class="r">${i + 1}</span><span>${esc(g.name)}</span><span class="p">${g.pts}</span></div>`).join("") : "";
+  renderRules(S().phase === "lobby");
+}
+
+function renderRules(showIt) {
+  const box = $("#rulesBox");
+  box.classList.toggle("hidden", !showIt);
+  if (!showIt) return;
+  const keys = Object.keys(JOKERS), n = keys.filter(hasRead).length;
+  box.innerHTML = `
+    <h3>📖 How to play</h3>
+    <ol class="rules">${RULES.map(([e, t]) => `<li><span>${e}</span><span>${esc(t)}</span></li>`).join("")}</ol>
+    <h3>🃏 Your group's jokers <span class="pill ${n === keys.length ? "good" : "warn"}">${n} / ${keys.length} read</span></h3>
+    <p class="muted small">Read each joker and tick the box. A joker can only be used from your phone after you've ticked it.</p>
+    <div class="jk-list">${keys.map((k) => { const j = JOKERS[k]; return `
+      <label class="jk-card ${hasRead(k) ? "done" : ""}">
+        <input type="checkbox" data-read="${k}" ${hasRead(k) ? "checked disabled" : ""}>
+        <span class="e">${j.emoji}</span>
+        <span class="t"><b>${esc(j.name)}</b><span>${esc(j.desc)}</span><small>When: ${esc(j.when)}</small></span>
+      </label>`; }).join("")}</div>
+    ${n === keys.length ? `<p class="all-read">✅ All set! Wait for the instructor to start.</p>` : ""}`;
+  box.onchange = (e) => {
+    const k = e.target.dataset.read; if (!k || !e.target.checked) return;
+    db.set(`games/${code}/players/${uid}/read/${k}`, true).catch((err) => toast(err.message));
+  };
 }
 
 function renderQuestion() {
@@ -165,7 +194,8 @@ function renderQuestion() {
   } else fig.classList.add("hidden");
 
   const pick = myPick();
-  const open = st.phase === "question" && !st.paused;
+  const open = st.phase === "question" && !st.paused && myLeft() > 0;
+  expiredKey = open ? null : st.qKey;
   const revealed = st.phase === "revealed";
   const maxSel = usedNow("alt") ? 2 : 1;
   const canEdit = open && (!pick || changing);
@@ -182,10 +212,12 @@ function renderQuestion() {
       (canChange ? `<button class="btn" id="ptmChange">🧬 Change</button>` : "");
     lb.classList.toggle("hidden", changing);
     const pc = $("#ptmChange"); if (pc) pc.onclick = () => { changing = true; sel = [...(pick.opts || [])]; render(); };
-  } else if (!pick && st.phase === "closed") {
+  } else if (!pick && (st.phase === "closed" || (st.phase === "question" && !st.paused && myLeft() <= 0))) {
     lb.className = "lock-banner closed"; lb.textContent = "⏰ Time's up — your group did not lock an answer.";
   } else if (st.paused && !revealed) {
     lb.className = "lock-banner closed"; lb.textContent = "⏸ Paused by the instructor";
+  } else if (!revealed && timeNote()) {
+    lb.className = "lock-banner warn"; lb.innerHTML = timeNote();
   } else lb.className = "lock-banner hidden";
 
   // options
@@ -232,11 +264,13 @@ function renderQuestion() {
   $("#jokers").innerHTML = Object.entries(JOKERS).map(([k, j]) => {
     const active = usedNow(k);
     const spent = used(k) && !active;
-    let allowed = open && !used(k);
-    if (k === "alt" || k === "re") allowed = allowed && !pick;
+    let allowed = open && !used(k) && hasRead(k);
+    if (k === "alt" || k === "re" || k === "pcr") allowed = allowed && !pick;
     if (k === "ptm") allowed = allowed && !!pick;
+    if (k === "sho") allowed = allowed && myLeft() > 10000;
+    const note = active ? "<br>active" : spent ? "<br>used" : !hasRead(k) ? "<br>not read" : "";
     return `<button class="jk ${active ? "active" : ""}" data-j="${k}" ${allowed ? "" : "disabled"} title="${esc(j.desc)}">
-      <span class="e">${j.emoji}</span>${esc(j.name.replace("Amplification", "").replace("Alternative ", "Alt. ").replace("Restriction ", "Restr. "))}${active ? "<br>active" : spent ? "<br>used" : ""}</button>`;
+      <span class="e">${j.emoji}</span>${esc(j.short)}${note}</button>`;
   }).join("");
   $("#jokers").onclick = (e) => {
     const b = e.target.closest(".jk"); if (!b || b.disabled) return;
@@ -263,12 +297,25 @@ async function lock() {
 function tick() {
   const st = S();
   if (!game || !["question", "closed", "revealed"].includes(st.phase)) return;
-  const ms = st.phase !== "question" ? 0 : st.paused ? st.remaining : Math.max(0, st.endsAt - db.serverNow());
+  const ms = myLeft();
   const secs = Math.ceil(ms / 1000);
   $("#timer .num").textContent = st.phase === "revealed" ? "✓" : secs;
   $("#timer .bar").style.strokeDashoffset = CIRC * (1 - (st.duration ? Math.min(1, ms / st.duration) : 0));
   $("#timer").classList.toggle("low", st.phase === "question" && secs <= 5);
-  if (st.phase === "question" && ms <= 0 && !$("#actionBar").classList.contains("hidden")) $("#actionBar").classList.add("hidden");
+  if (st.phase === "question" && !st.paused && ms <= 0 && expiredKey !== st.qKey) render();
+  if (st.phase === "question" && me()) { const tn = timeNote(); const lb = $("#lockBanner");
+    if (lb.classList.contains("warn") && tn) lb.innerHTML = tn; }
+}
+
+// Explains Telomerase / Telomere Shortening effects on this group's clock.
+function timeNote() {
+  const st = S(); if (st.phase !== "question" || !me()) return "";
+  const mine = me().group, gs = game.config.groups || [];
+  const shortBy = gs.filter((g) => g.id !== mine && game.jokers?.[g.id]?.sho === st.qKey).map((g) => esc(g.name));
+  const secs = Math.ceil(myLeft() / 1000);
+  if (usedNow("tel")) return `🧲 Telomerase: +15 s for your group · <b class="mono">${secs}s</b> left`;
+  if (shortBy.length) return `⏳ ${shortBy.join(", ")} used Telomere Shortening! <b class="mono">${secs}s</b> left`;
+  return "";
 }
 
 function lightbox(src) {

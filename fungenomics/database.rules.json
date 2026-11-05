@@ -20,7 +20,7 @@
         "picks": {
           "$q": {
             "$group": {
-              ".write": "auth != null && root.child('games/' + $code + '/players/' + auth.uid + '/group').val() === $group && root.child('games/' + $code + '/state/phase').val() === 'question' && root.child('games/' + $code + '/state/qKey').val() === $q",
+              ".write": "auth != null && root.child('games/' + $code + '/players/' + auth.uid + '/group').val() === $group && root.child('games/' + $code + '/state/phase').val() === 'question' && root.child('games/' + $code + '/state/qKey').val() === $q && root.child('games/' + $code + '/state/paused').val() !== true && now <= (root.child('games/' + $code + '/state/deadline/' + $group).exists() ? root.child('games/' + $code + '/state/deadline/' + $group).val() : root.child('games/' + $code + '/state/endsAt').val()) + 2000",
               ".validate": "newData.hasChildren(['opts', 'by', 'uid']) && newData.child('uid').val() === auth.uid"
             }
           }
@@ -30,7 +30,7 @@
           "$group": {
             "$key": {
               ".write": "auth != null && !data.exists() && root.child('games/' + $code + '/players/' + auth.uid + '/group').val() === $group && root.child('games/' + $code + '/state/phase').val() === 'question'",
-              ".validate": "($key === 'pcr' || $key === 'alt' || $key === 'ptm' || $key === 're') && newData.val() === root.child('games/' + $code + '/state/qKey').val()"
+              ".validate": "($key === 'pcr' || $key === 'alt' || $key === 'ptm' || $key === 're' || $key === 'sho' || $key === 'tel') && newData.val() === root.child('games/' + $code + '/state/qKey').val()"
             }
           }
         }

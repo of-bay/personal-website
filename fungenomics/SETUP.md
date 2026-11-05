@@ -41,7 +41,8 @@ Commit and push the website repository. GitHub Pages serves `/fungenomics/`.
 `Space`/`Enter`: next step (Start → Reveal → Leaderboard → Next) · `P`: pause · `F`: fullscreen · `M`: sound · `T`: light/dark theme
 
 ## Jokers (one per group per game, activated from phones)
-🧪 PCR: double points · 🔀 Alt. Splicing: lock 2 answers · 🧬 PTM: change a locked answer once · ✂️ Restriction Enzyme: removes 2 wrong options from that group's screen
+🧪 PCR: double points · 🔀 Alt. Splicing: lock 2 answers · 🧬 PTM: change a locked answer once · ✂️ Restriction Enzyme: removes 2 wrong options from that group's screen · ⏳ Telomere Shortening: all other groups get only 10 s · 🧲 Telomerase: +15 s for own group only.
+Students must tick each joker's "I've read it" box in the lobby before they can use it. Rules page: `rules.html`.
 
 ## Instructor-only hosting
 `host.html` requires Google sign-in as **ofb.bay@gmail.com**. Students sign in anonymously and cannot create games or read answers.
