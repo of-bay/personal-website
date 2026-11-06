@@ -1,5 +1,5 @@
 // FunGenomics Live — student phone client
-import { getDB, JOKERS, RULES, WEEK_TITLES, LETTERS, initTheme, esc, demoBanner, burstConfetti } from "./db.js?v=5";
+import { getDB, JOKERS, RULES, WEEK_TITLES, LETTERS, initTheme, esc, demoBanner, burstConfetti } from "./db.js?v=6";
 
 const $ = (s) => document.querySelector(s);
 const CIRC = 263.9;

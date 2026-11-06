@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/fg.css?v=5">
-  <link rel="stylesheet" href="css/play.css?v=5">
+  <link rel="stylesheet" href="css/fg.css?v=6">
+  <link rel="stylesheet" href="css/play.css?v=6">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧬%3C/text%3E%3C/svg%3E">
   <style>
     body.play main { padding-bottom: 3rem; }
@@ -45,7 +45,7 @@
     <p style="text-align:center;margin-top:1.4rem"><a class="btn primary lg" href="./">Join a game →</a></p>
   </main>
   <script type="module">
-    import { JOKERS, RULES, initTheme, esc } from "./js/db.js?v=5";
+    import { JOKERS, RULES, initTheme, esc } from "./js/db.js?v=6";
     initTheme();
     document.getElementById("rules").innerHTML = RULES.map(([e, t]) => `<li><span>${e}</span><span>${esc(t)}</span></li>`).join("");
     document.getElementById("jokers").innerHTML = Object.values(JOKERS).map((j) =>

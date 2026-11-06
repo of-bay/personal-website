@@ -12,7 +12,7 @@
 
         "players": {
           "$uid": {
-            ".write": "(auth == null || auth.uid === $uid) && root.child('games/' + $code + '/hostUid').exists()",
+            ".write": "root.child('games/' + $code + '/hostUid').exists()",
             ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('name').val().length <= 24 && root.child('games/' + $code + '/config/groups').exists())"
           }
         },

@@ -1,7 +1,7 @@
 // FunGenomics Live — real-time data layer.
 // Same tiny API for Firebase Realtime Database and a local demo backend
 // (localStorage + BroadcastChannel) so the game can be tested offline.
-import { firebaseConfig, DEMO_MODE } from "./config.js?v=5";
+import { firebaseConfig, DEMO_MODE } from "./config.js?v=6";
 
 export const ADMIN_EMAIL = "ofb.bay@gmail.com";
 
@@ -49,43 +49,121 @@ function makeDemo() {
   };
 }
 
-/* -------------------------------------------------------------- firebase */
-async function makeFirebase(opts = {}) {
+/* --------------------------------------------------- firebase (students) */
+function makeStudentFirebase() {
+  const baseUrl = firebaseConfig.databaseURL.replace(/\/$/, "");
+  const url = (p) => `${baseUrl}/${p.replace(/^\/+|\/+$/g, "")}.json`;
+
+  let uid = null;
+  try { uid = sessionStorage.getItem("fg-session-uid"); } catch {}
+  if (!uid) {
+    const rand = (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, "").slice(0, 12) : Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 8));
+    uid = "s_" + rand + "_" + Date.now().toString(36);
+    try { sessionStorage.setItem("fg-session-uid", uid); } catch {}
+  }
+
+  let offset = 0;
+  let wsDb = null, D = null;
+  const subs = new Set();
+
+  // Optional background WebSocket accelerator (never blocks if gstatic/WS is slow or blocked)
+  (async () => {
+    try {
+      const base = `https://www.gstatic.com/firebasejs/${FB_VER}`;
+      const { initializeApp } = await import(`${base}/firebase-app.js`);
+      D = await import(`${base}/firebase-database.js`);
+      const app = initializeApp(firebaseConfig, "student-ws-" + uid);
+      wsDb = D.getDatabase(app);
+      D.onValue(D.ref(wsDb, ".info/serverTimeOffset"), (s) => { offset = s.val() || 0; });
+      subs.forEach((sub) => attachWs(sub));
+    } catch {}
+  })();
+
+  function attachWs(sub) {
+    if (!wsDb || !D || sub.offWs) return;
+    try {
+      sub.offWs = D.onValue(D.ref(wsDb, sub.path), (s) => {
+        const val = s.val();
+        sub.lastJson = JSON.stringify(val);
+        sub.cb(val);
+      });
+    } catch {}
+  }
+
+  async function req(p, method = "GET", body = undefined) {
+    const res = await fetch(url(p), {
+      method,
+      headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const j = await res.json(); if (j && j.error) msg = j.error; } catch {}
+      throw new Error(msg);
+    }
+    return res.json();
+  }
+
+  async function pollSub(sub, force = false) {
+    if (sub.closed) return;
+    try {
+      const val = await req(sub.path, "GET");
+      if (sub.closed) return;
+      const j = JSON.stringify(val);
+      if (force || j !== sub.lastJson) {
+        sub.lastJson = j;
+        sub.cb(val);
+      }
+    } catch {}
+  }
+
+  const refreshAll = () => subs.forEach((s) => pollSub(s, true));
+
+  return {
+    demo: false,
+    uid: async () => uid,
+    hostUser: async () => null,
+    signOut: async () => {},
+    serverNow: () => Date.now() + offset,
+    get: (p) => req(p, "GET"),
+    set: async (p, v) => { const r = await req(p, "PUT", v); refreshAll(); return r; },
+    update: async (p, obj) => { const r = await req(p, "PATCH", obj); refreshAll(); return r; },
+    remove: async (p) => { const r = await req(p, "DELETE"); refreshAll(); return r; },
+    listen: (p, cb) => {
+      const sub = { path: p, cb, lastJson: undefined, closed: false, offWs: null };
+      subs.add(sub);
+      pollSub(sub, true);
+      attachWs(sub);
+      const timer = setInterval(() => pollSub(sub, false), 1000);
+      return () => {
+        sub.closed = true;
+        clearInterval(timer);
+        sub.offWs && sub.offWs();
+        subs.delete(sub);
+      };
+    },
+  };
+}
+
+/* ------------------------------------------------------- firebase (host) */
+async function makeHostFirebase() {
   const base = `https://www.gstatic.com/firebasejs/${FB_VER}`;
   const { initializeApp } = await import(`${base}/firebase-app.js`);
   const A = await import(`${base}/firebase-auth.js`);
-  const { getAuth, signInAnonymously, onAuthStateChanged } = A;
+  const { getAuth, onAuthStateChanged } = A;
   const D = await import(`${base}/firebase-database.js`);
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = D.getDatabase(app);
 
-  // Students: anonymous sign-in with local fallback (so Private Browsing / QR WebViews never hang).
-  // Host: Google sign-in (see hostUser()).
-  let fallbackUid = null;
-  try { fallbackUid = localStorage.getItem("fg-uid") || sessionStorage.getItem("fg-uid"); } catch {}
-  if (!fallbackUid) {
-    fallbackUid = "s_" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
-    try { localStorage.setItem("fg-uid", fallbackUid); } catch {}
-    try { sessionStorage.setItem("fg-uid", fallbackUid); } catch {}
-  }
-  const uidPromise = opts.host ? null : new Promise((resolve) => {
-    const timer = setTimeout(() => resolve(fallbackUid), 2500);
-    try {
-      onAuthStateChanged(auth, (u) => { if (u) { clearTimeout(timer); resolve(u.uid); } });
-      signInAnonymously(auth).catch(() => { clearTimeout(timer); resolve(fallbackUid); });
-    } catch {
-      clearTimeout(timer);
-      resolve(fallbackUid);
-    }
-  });
   const firstUser = new Promise((r) => { const off = onAuthStateChanged(auth, (u) => { off(); r(u); }); });
   let offset = 0;
   D.onValue(D.ref(db, ".info/serverTimeOffset"), (s) => { offset = s.val() || 0; });
 
   return {
     demo: false,
-    uid: async () => (uidPromise ? uidPromise : (auth.currentUser && auth.currentUser.uid)),
+    uid: async () => (auth.currentUser && auth.currentUser.uid),
     // Resolves with the signed-in instructor; `gate(show, err)` renders the sign-in UI.
     hostUser: async (gate) => {
       let u = await firstUser;
@@ -108,12 +186,29 @@ async function makeFirebase(opts = {}) {
     set: (p, v) => D.set(D.ref(db, p), v),
     update: (p, obj) => D.update(D.ref(db, p), obj),
     remove: (p) => D.remove(D.ref(db, p)),
-    listen: (p, cb) => D.onValue(D.ref(db, p), (s) => cb(s.val())),
+    listen: (p, cb) => {
+      let lastJson = undefined;
+      const emit = (val) => {
+        const j = JSON.stringify(val);
+        if (j !== lastJson) { lastJson = j; cb(val); }
+      };
+      const off = D.onValue(D.ref(db, p), (s) => emit(s.val()));
+      const baseUrl = firebaseConfig.databaseURL.replace(/\/$/, "");
+      const poll = async () => {
+        try {
+          const r = await fetch(`${baseUrl}/${p.replace(/^\/+|\/+$/g, "")}.json`, { cache: "no-store" });
+          if (r.ok) emit(await r.json());
+        } catch {}
+      };
+      poll();
+      const timer = setInterval(poll, 1200);
+      return () => { off(); clearInterval(timer); };
+    },
   };
 }
 
 export async function getDB(opts = {}) {
-  if (!impl) impl = DEMO_MODE ? makeDemo() : await makeFirebase(opts);
+  if (!impl) impl = DEMO_MODE ? makeDemo() : opts.host ? await makeHostFirebase() : makeStudentFirebase();
   return impl;
 }
 
