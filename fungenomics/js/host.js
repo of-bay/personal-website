@@ -1,5 +1,5 @@
 // FunGenomics Live — host controller (projector screen)
-import { getDB, JOKERS, LETTERS, initTheme, esc, demoBanner, normText, burstConfetti, synthFX } from "./db.js?v=6";
+import { getDB, JOKERS, LETTERS, initTheme, esc, demoBanner, normText, burstConfetti, synthFX } from "./db.js?v=7";
 
 const $ = (s) => document.querySelector(s);
 const QUIZ1 = ["2.1", "2.2", "3", "4"];
@@ -196,7 +196,7 @@ function render() {
 
 function renderLobby() {
   show("#vLobby");
-  const url = new URL(`play.html?v=6&code=${code}`, location.href).href;
+  const url = new URL(`play.html?v=7&code=${code}`, location.href).href;
   const displayUrl = new URL(`play.html?code=${code}`, location.href).href;
   $("#joinUrl").textContent = displayUrl.replace(/^https?:\/\//, "");
   $("#codeBig").textContent = code;

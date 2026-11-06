@@ -1,7 +1,7 @@
 // FunGenomics Live — real-time data layer.
 // Same tiny API for Firebase Realtime Database and a local demo backend
 // (localStorage + BroadcastChannel) so the game can be tested offline.
-import { firebaseConfig, DEMO_MODE } from "./config.js?v=6";
+import { firebaseConfig, DEMO_MODE } from "./config.js?v=7";
 
 export const ADMIN_EMAIL = "ofb.bay@gmail.com";
 

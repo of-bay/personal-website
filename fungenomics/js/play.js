@@ -1,8 +1,11 @@
 // FunGenomics Live — student phone client
-import { getDB, JOKERS, RULES, WEEK_TITLES, LETTERS, initTheme, esc, demoBanner, burstConfetti } from "./db.js?v=6";
+import { getDB, JOKERS, RULES, WEEK_TITLES, LETTERS, initTheme, esc, demoBanner, burstConfetti } from "./db.js?v=7";
 
 const $ = (s) => document.querySelector(s);
 const CIRC = 263.9;
+const ADJ = ["Curious", "Clever", "Speedy", "Brave", "Mighty", "Lucky", "Sneaky", "Happy", "Bold", "Cosmic", "Fuzzy", "Glowing", "Silent", "Jolly", "Witty", "Tiny"];
+const NOUN = ["Ribosome", "Codon", "Plasmid", "Helicase", "Nucleotide", "Primer", "Exon", "Intron", "Contig", "Polymerase", "Histone", "Operon", "Allele", "Genome", "Read", "K-mer"];
+const EMO = ["🧬", "🧪", "🔬", "🦠", "🧫", "⚗️"];
 
 let db, uid;
 let code = null, game = null, unlisten = null;
@@ -16,6 +19,18 @@ let studyLog = [];        // local revision sheet for this session
 let studyFilterMissed = false;
 let celebratedKey = null;
 let vibratedShortKey = null;
+let expiredKey = null;
+
+const S = () => game?.state || {};
+const me = () => game?.players?.[uid];
+const myGroup = () => (game?.config?.groups || []).find((g) => g.id === me()?.group);
+const myPick = () => game?.picks?.[S().qKey]?.[me()?.group];
+const used = (key) => game?.jokers?.[me()?.group]?.[key];
+const usedNow = (key) => used(key) === S().qKey;
+const nowT = () => (S().paused ? S().pausedAt : db.serverNow());
+const myEnd = () => S().deadline?.[me()?.group] ?? S().endsAt;
+const myLeft = () => (S().phase === "question" ? Math.max(0, myEnd() - nowT()) : 0);
+const hasRead = (k) => !!me()?.read?.[k];
 
 init();
 async function init() {
@@ -69,9 +84,6 @@ function ensureDomNodes() {
 }
 
 /* ================================================================ join */
-const ADJ = ["Curious", "Clever", "Speedy", "Brave", "Mighty", "Lucky", "Sneaky", "Happy", "Bold", "Cosmic", "Fuzzy", "Glowing", "Silent", "Jolly", "Witty", "Tiny"];
-const NOUN = ["Ribosome", "Codon", "Plasmid", "Helicase", "Nucleotide", "Primer", "Exon", "Intron", "Contig", "Polymerase", "Histone", "Operon", "Allele", "Genome", "Read", "K-mer"];
-const EMO = ["🧬", "🧪", "🔬", "🦠", "🧫", "⚗️"];
 function randomNick() {
   const r = (a) => a[Math.floor(Math.random() * a.length)];
   return `${r(ADJ)} ${r(NOUN)} ${r(EMO)}`;
@@ -106,18 +118,6 @@ async function join(e) {
 function showErr(m) { $("#joinErr").textContent = m; $("#joinErr").classList.toggle("hidden", !m); }
 
 /* ============================================================== render */
-const S = () => game?.state || {};
-const me = () => game?.players?.[uid];
-const myGroup = () => (game?.config?.groups || []).find((g) => g.id === me()?.group);
-const myPick = () => game?.picks?.[S().qKey]?.[me()?.group];
-const used = (key) => game?.jokers?.[me()?.group]?.[key];
-const usedNow = (key) => used(key) === S().qKey;
-const nowT = () => (S().paused ? S().pausedAt : db.serverNow());
-const myEnd = () => S().deadline?.[me()?.group] ?? S().endsAt;
-const myLeft = () => (S().phase === "question" ? Math.max(0, myEnd() - nowT()) : 0);
-const hasRead = (k) => !!me()?.read?.[k];
-let expiredKey = null;
-
 function show(id) { ["#vJoin", "#vWait", "#vQ"].forEach((v) => $(v).classList.toggle("hidden", v !== id)); }
 
 function render() {
