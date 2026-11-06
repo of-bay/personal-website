@@ -1,0 +1,584 @@
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --card: #1a2235;
+  --card2: #1e293b;
+  --accent: #00d4ff;
+  --green: #00e676;
+  --amber: #ffd740;
+  --red: #ff5252;
+  --purple: #b39ddb;
+  --gold: #ffc107;
+  --text: #ffffff;
+  --text2: #94a3b8;
+  --border: #2d3748;
+  --border2: #374151;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Header & Top Nav ─────────────────────────────────────── */
+.app-header {
+  background-color: var(--bg2);
+  border-block-end: 1px solid var(--border);
+  padding: 0.85rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.brand-badge {
+  background: linear-gradient(135deg, var(--accent), #0077ff);
+  color: var(--bg);
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  letter-spacing: 0.05em;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.app-subtitle {
+  color: var(--text2);
+  font-size: 0.85rem;
+  margin-inline-start: 0.5rem;
+}
+
+.mode-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.btn {
+  background-color: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 1.1rem;
+  min-height: 44px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: var(--card2);
+  border-color: var(--accent);
+}
+
+.btn:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-active {
+  background-color: #00d4ff22;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-primary {
+  background-color: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #ffffff;
+  border-color: #ffffff;
+  color: var(--bg);
+}
+
+.btn-green {
+  background-color: var(--green);
+  color: var(--bg);
+  border-color: var(--green);
+  font-weight: 700;
+}
+
+.btn-amber {
+  background-color: transparent;
+  color: var(--amber);
+  border: 1.5px solid var(--amber);
+}
+
+.btn-amber:hover:not(:disabled) {
+  background-color: #ffd74022;
+  border-color: var(--amber);
+}
+
+/* ── Layout Containers ────────────────────────────────────── */
+.main-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 1.25rem 1.75rem 2.5rem;
+}
+
+.view-panel[hidden] {
+  display: none !important;
+}
+
+.card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+}
+
+.section-tag {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-block-end: 0.4rem;
+  display: block;
+}
+
+/* ── Topic Filter Bar ─────────────────────────────────────── */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block-end: 1.15rem;
+}
+
+.filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.pill-btn {
+  background-color: var(--card2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pill-btn.active,
+.pill-btn:hover {
+  background-color: #00d4ff22;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.stats-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.badge-score {
+  background-color: var(--card2);
+  color: var(--green);
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  padding: 0.35rem 0.85rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.badge-streak {
+  background-color: var(--card2);
+  color: var(--amber);
+  border: 1px solid var(--amber);
+  border-radius: 8px;
+  padding: 0.35rem 0.85rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* ── Arena Two-Column Grid ────────────────────────────────── */
+.arena-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1.25fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .arena-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Visual Folder Tree Map ───────────────────────────────── */
+.tree-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.legend-group {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text2);
+}
+
+.tree-box {
+  background-color: #070a12;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+  margin: 0;
+  overflow-x: auto;
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: #e2e8f0;
+}
+
+.tree-node-cwd {
+  background-color: #00e67628;
+  color: var(--green);
+  border: 1px solid var(--green);
+  border-radius: 6px;
+  padding: 0.1rem 0.45rem;
+  font-weight: 700;
+}
+
+.tree-node-target {
+  background-color: #ffd74028;
+  color: var(--amber);
+  border: 1px solid var(--amber);
+  border-radius: 6px;
+  padding: 0.1rem 0.45rem;
+  font-weight: 700;
+}
+
+.tree-node-tried {
+  background-color: #ff525228;
+  color: var(--red);
+  border: 1px dashed var(--red);
+  border-radius: 6px;
+  padding: 0.1rem 0.45rem;
+}
+
+.pwd-banner {
+  margin-block-start: 0.85rem;
+  background-color: var(--card2);
+  border-inline-start: 4px solid var(--green);
+  border-radius: 8px;
+  padding: 0.65rem 0.95rem;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pwd-banner code {
+  color: var(--green);
+  font-weight: 700;
+  font-size: 0.98rem;
+}
+
+/* ── Mission & Terminal Prompt Card ───────────────────────── */
+.mission-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-block-end: 0.5rem;
+}
+
+.mission-title {
+  margin: 0 0 0.6rem 0;
+  font-size: 1.3rem;
+  color: var(--text);
+}
+
+.mission-task {
+  background-color: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+  font-size: 1.05rem;
+  margin-block-end: 1.1rem;
+}
+
+.mission-task code {
+  background-color: #0a0e1a;
+  color: var(--accent);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.95em;
+}
+
+.constraint-pill {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background-color: #b39ddb24;
+  color: var(--purple);
+  border: 1px solid var(--purple);
+}
+
+/* ── Terminal Form ────────────────────────────────────────── */
+.terminal-form {
+  margin-block-end: 1rem;
+}
+
+.terminal-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-block-end: 0.4rem;
+  color: var(--text);
+}
+
+.terminal-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.6rem;
+  background-color: #070a12;
+  border: 2px solid var(--border2);
+  border-radius: 10px;
+  padding: 0.45rem 0.65rem;
+  transition: border-color 0.15s ease;
+}
+
+.terminal-input-row:focus-within {
+  border-color: var(--accent);
+}
+
+.prompt-prefix {
+  display: flex;
+  align-items: center;
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  color: var(--green);
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  padding-inline-end: 0.25rem;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  font-size: 1.05rem;
+  min-height: 44px;
+  padding: 0.25rem 0.4rem;
+}
+
+.terminal-input:focus {
+  outline: none;
+}
+
+.form-hint {
+  display: block;
+  color: var(--text2);
+  font-size: 0.83rem;
+  margin-block-start: 0.4rem;
+}
+
+/* ── Feedback Box ─────────────────────────────────────────── */
+.feedback-box {
+  border-radius: 10px;
+  padding: 0.95rem 1.15rem;
+  margin-block-top: 0.85rem;
+  font-size: 0.98rem;
+  border: 1px solid var(--border);
+  background-color: var(--card2);
+}
+
+.feedback-box.ok {
+  background-color: #00e67618;
+  border-color: var(--green);
+}
+
+.feedback-box.err {
+  background-color: #ff525218;
+  border-color: var(--red);
+}
+
+.feedback-box.hint {
+  background-color: #ffd74018;
+  border-color: var(--amber);
+}
+
+.feedback-box code {
+  background-color: #070a12;
+  color: var(--accent);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-block-top: 1rem;
+}
+
+/* ── Live Classroom Host & Student Views ──────────────────── */
+.host-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .host-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.join-banner {
+  background: linear-gradient(90deg, #1a2235, #112a45);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 0.9rem 1.25rem;
+  margin-block-end: 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.join-url {
+  color: var(--accent);
+  font-family: monospace;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.timer-bar-wrap {
+  width: 100%;
+  height: 10px;
+  background-color: var(--card2);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-block: 0.65rem;
+}
+
+.timer-bar-fill {
+  height: 100%;
+  background-color: var(--accent);
+  width: 100%;
+  transition: width 0.4s linear, background-color 0.3s ease;
+}
+
+.scoreboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.65rem 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.scoreboard-item {
+  background-color: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+
+.scoreboard-score {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+/* ── Native Dialog (Cheat Sheet & Rules) ──────────────────── */
+.rules-dialog {
+  background-color: var(--card);
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 14px;
+  padding: 1.5rem 1.75rem;
+  max-width: 760px;
+  width: 92vw;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.rules-dialog::backdrop {
+  background: rgba(5, 8, 16, 0.78);
+}
+
+.rules-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-block: 0.85rem;
+  font-size: 0.92rem;
+}
+
+.rules-table th,
+.rules-table td {
+  border: 1px solid var(--border);
+  padding: 0.55rem 0.75rem;
+  text-align: start;
+}
+
+.rules-table th {
+  background-color: var(--card2);
+  color: var(--accent);
+}
+

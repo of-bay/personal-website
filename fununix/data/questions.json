@@ -1,0 +1,738 @@
+{
+  "categories": [
+    {
+      "id": "PATH_BASICS",
+      "label": "🗺️ 1. Path Basics (pwd, ., .., ~)",
+      "description": "Understand where you are standing (pwd) and the special symbols ., .., ~, and /."
+    },
+    {
+      "id": "REL_VS_ABS",
+      "label": "🔀 2. Relative vs. Absolute Paths",
+      "description": "Walk step-by-step from your current room (../) or teleport from home (~/)."
+    },
+    {
+      "id": "REACH_VS_WALK",
+      "label": "✋ 3. Reach vs. Walk (No cd!)",
+      "description": "Work on files in other rooms without moving your feet (cat, ls, mkdir, touch, cp, mv)."
+    },
+    {
+      "id": "OPTIONS_AND_FIND",
+      "label": "🔧 4. Week 03 Options + Paths",
+      "description": "Combine command options (-l, -a, -r, -p, -n) with folder paths."
+    },
+    {
+      "id": "GREP_PIPES_REDIR",
+      "label": "🔍 5. Week 04 grep, Pipes & Redirection",
+      "description": "Search with grep, chain commands with |, and save output with > and >> across folders."
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q01",
+      "category": "PATH_BASICS",
+      "title": "Turn On the GPS",
+      "cwd": "/Users/ali/agu_campus/cafeteria",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus/cafeteria",
+      "tree": {
+        "/Users/ali": ["agu_campus", "Desktop"],
+        "/Users/ali/Desktop": ["todo.txt"],
+        "/Users/ali/agu_campus": ["cafeteria", "library"],
+        "/Users/ali/agu_campus/cafeteria": ["menu.txt"],
+        "/Users/ali/agu_campus/library": ["books.txt"]
+      },
+      "task": "You just opened the terminal and do not know which folder you are standing in. Type the command that prints your current working directory.",
+      "constraint": "any",
+      "cmd_type": "exact",
+      "accepted_cmds": ["pwd"],
+      "expected_cmd": "pwd",
+      "hint": "Three letters: Print Working Directory.",
+      "explanation": "`pwd` (Print Working Directory) always prints your full address starting from the root `/`, here `/Users/ali/agu_campus/cafeteria`."
+    },
+    {
+      "id": "Q02",
+      "category": "PATH_BASICS",
+      "title": "Step One Level Up",
+      "cwd": "/Users/ali/agu_campus/cafeteria",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus",
+      "tree": {
+        "/Users/ali": ["agu_campus", "Desktop"],
+        "/Users/ali/Desktop": ["todo.txt"],
+        "/Users/ali/agu_campus": ["cafeteria", "library"],
+        "/Users/ali/agu_campus/cafeteria": ["menu.txt"],
+        "/Users/ali/agu_campus/library": ["books.txt"]
+      },
+      "task": "You are standing in `cafeteria`. Move ONE level up into its parent folder (`agu_campus`) using the special two-dot symbol.",
+      "constraint": "relative",
+      "cmd_type": "cd",
+      "accepted_cmds": ["cd ..", "cd ../"],
+      "expected_cmd": "cd ..",
+      "hint": "Two dots `..` always mean 'the parent folder one level above me'.",
+      "explanation": "`..` means the parent folder. Since you are in `/Users/ali/agu_campus/cafeteria`, typing `cd ..` moves you up into `/Users/ali/agu_campus`."
+    },
+    {
+      "id": "Q03",
+      "category": "PATH_BASICS",
+      "title": "Walk Into a Child Folder",
+      "cwd": "/Users/ali/agu_campus",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus/library",
+      "tree": {
+        "/Users/ali": ["agu_campus", "Desktop"],
+        "/Users/ali/Desktop": ["todo.txt"],
+        "/Users/ali/agu_campus": ["cafeteria", "library"],
+        "/Users/ali/agu_campus/cafeteria": ["menu.txt"],
+        "/Users/ali/agu_campus/library": ["books.txt"]
+      },
+      "task": "You are standing in `agu_campus`. Look at the map: `library` is directly inside `agu_campus`. Move into `library` using a **relative path**.",
+      "constraint": "relative",
+      "cmd_type": "cd",
+      "accepted_cmds": ["cd library", "cd library/", "cd ./library", "cd ./library/"],
+      "expected_cmd": "cd library",
+      "hint": "Because `library` is right inside your current folder, you do not need `/` or `..` in front of it.",
+      "explanation": "When a folder (`library`) is directly inside the folder where you are standing (`agu_campus`), you simply write `cd library` (no leading slash!)."
+    },
+    {
+      "id": "Q04",
+      "category": "PATH_BASICS",
+      "title": "Teleport Home Instantly",
+      "cwd": "/Users/ali/agu_campus/library/basement/archive",
+      "home": "/Users/ali",
+      "target": "/Users/ali",
+      "tree": {
+        "/Users/ali": ["agu_campus", "Desktop"],
+        "/Users/ali/Desktop": ["todo.txt"],
+        "/Users/ali/agu_campus": ["library"],
+        "/Users/ali/agu_campus/library": ["basement"],
+        "/Users/ali/agu_campus/library/basement": ["archive"],
+        "/Users/ali/agu_campus/library/basement/archive": ["old_records.txt"]
+      },
+      "task": "You are deep down in `archive`. Move directly back to your home folder (`/Users/ali`) using the tilde `~` shortcut.",
+      "constraint": "any",
+      "cmd_type": "cd",
+      "accepted_cmds": ["cd ~", "cd", "cd ~/"],
+      "expected_cmd": "cd ~",
+      "hint": "Use `cd` followed by the `~` symbol.",
+      "explanation": "`~` is the shortcut for your home folder (`/Users/ali`). `cd ~` (or just `cd`) teleports you home from anywhere in one step."
+    },
+    {
+      "id": "Q05",
+      "category": "PATH_BASICS",
+      "title": "Climb Two Levels Up",
+      "cwd": "/Users/ali/agu_campus/labs/floor_2/biology",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus/labs",
+      "tree": {
+        "/Users/ali": ["agu_campus"],
+        "/Users/ali/agu_campus": ["labs", "cafeteria"],
+        "/Users/ali/agu_campus/cafeteria": ["menu.txt"],
+        "/Users/ali/agu_campus/labs": ["floor_1", "floor_2"],
+        "/Users/ali/agu_campus/labs/floor_1": ["chemistry"],
+        "/Users/ali/agu_campus/labs/floor_1/chemistry": ["tubes.txt"],
+        "/Users/ali/agu_campus/labs/floor_2": ["biology"],
+        "/Users/ali/agu_campus/labs/floor_2/biology": ["cells.txt"]
+      },
+      "task": "You are standing in `biology`. Move **two levels up** to `labs` in a single `cd` command using `..`.",
+      "constraint": "relative",
+      "cmd_type": "cd",
+      "accepted_cmds": ["cd ../..", "cd ../../"],
+      "expected_cmd": "cd ../..",
+      "hint": "One `..` takes you to `floor_2`. Join a second `..` with a slash `/`!",
+      "explanation": "Each `..` goes up one level: the first `..` goes from `biology` to `floor_2`, and `/..` goes from `floor_2` to `labs` (`cd ../..`)."
+    },
+    {
+      "id": "Q06",
+      "category": "PATH_BASICS",
+      "title": "Walk Down Two Doors at Once",
+      "cwd": "/Users/ali/agu_campus",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus/labs/floor_2",
+      "tree": {
+        "/Users/ali": ["agu_campus"],
+        "/Users/ali/agu_campus": ["labs", "cafeteria"],
+        "/Users/ali/agu_campus/cafeteria": ["menu.txt"],
+        "/Users/ali/agu_campus/labs": ["floor_1", "floor_2"],
+        "/Users/ali/agu_campus/labs/floor_1": ["safety.txt"],
+        "/Users/ali/agu_campus/labs/floor_2": ["microscope.txt"]
+      },
+      "task": "You are standing in `agu_campus`. Move into `floor_2` (which is inside `labs`) in **one** command using a **relative path**.",
+      "constraint": "relative",
+      "cmd_type": "cd",
+      "accepted_cmds": ["cd labs/floor_2", "cd labs/floor_2/", "cd ./labs/floor_2", "cd ./labs/floor_2/"],
+      "expected_cmd": "cd labs/floor_2",
+      "hint": "Start with `labs`, put a slash `/`, then `floor_2`. Do NOT put a `/` at the very beginning!",
+      "explanation": "From `agu_campus`, `labs` is right in front of you, and `floor_2` is inside `labs`. So the relative path is `cd labs/floor_2`."
+    },
+    {
+      "id": "Q07",
+      "category": "REL_VS_ABS",
+      "title": "The Classic Neighbor Trap (Relative Path)",
+      "cwd": "/Users/ali/agu_campus/cafeteria",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus/library",
+      "tree": {
+        "/Users/ali": ["agu_campus"],
+        "/Users/ali/agu_campus": ["cafeteria", "library", "rectorate"],
+        "/Users/ali/agu_campus/cafeteria": ["menu.txt", "tea.txt"],
+        "/Users/ali/agu_campus/library": ["books.txt"],
+        "/Users/ali/agu_campus/rectorate": ["forms.txt"]
+      },
+      "task": "You are standing in `cafeteria`. You want to go to `library` (a neighbor folder inside `agu_campus`). Move into `library` using a **relative path** (`..`).",
+      "constraint": "relative",
+      "cmd_type": "cd",
+      "accepted_cmds": ["cd ../library", "cd ../library/"],
+      "expected_cmd": "cd ../library",
+      "hint": "There is no `library` door inside `cafeteria`! First go up to `agu_campus` (`..`), then down into `library`.",
+      "explanation": "`cd library` fails because `library` is not inside `cafeteria`. You must step up to `agu_campus` (`..`) and then enter `library`: `cd ../library`."
+    },
+    {
+      "id": "Q08",
+      "category": "REL_VS_ABS",
+      "title": "The Same Neighbor via Home (~)",
+      "cwd": "/Users/ali/agu_campus/cafeteria",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus/library",
+      "tree": {
+        "/Users/ali": ["agu_campus"],
+        "/Users/ali/agu_campus": ["cafeteria", "library", "rectorate"],
+        "/Users/ali/agu_campus/cafeteria": ["menu.txt"],
+        "/Users/ali/agu_campus/library": ["books.txt"],
+        "/Users/ali/agu_campus/rectorate": ["forms.txt"]
+      },
+      "task": "You are in `cafeteria` again. This time, move into `library` using an **absolute path starting with `~`** (your home folder `/Users/ali`).",
+      "constraint": "tilde",
+      "cmd_type": "cd",
+      "accepted_cmds": ["cd ~/agu_campus/library", "cd ~/agu_campus/library/"],
+      "expected_cmd": "cd ~/agu_campus/library",
+      "hint": "`~` stands for `/Users/ali`. Which folders do you pass through after `/Users/ali` to reach `library`?",
+      "explanation": "Starting from `~` (`/Users/ali`), you go into `agu_campus` and then `library`: `cd ~/agu_campus/library`. This works from anywhere!"
+    },
+    {
+      "id": "Q09",
+      "category": "REL_VS_ABS",
+      "title": "Full Absolute Path from Root (/)",
+      "cwd": "/Users/ali/agu_campus/cafeteria",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus/library",
+      "tree": {
+        "/Users/ali": ["agu_campus"],
+        "/Users/ali/agu_campus": ["cafeteria", "library"],
+        "/Users/ali/agu_campus/cafeteria": ["menu.txt"],
+        "/Users/ali/agu_campus/library": ["books.txt"]
+      },
+      "task": "Now move from `cafeteria` into `library` using the **full absolute path starting with `/` (root)**.",
+      "constraint": "root_abs",
+      "cmd_type": "cd",
+      "accepted_cmds": ["cd /Users/ali/agu_campus/library", "cd /Users/ali/agu_campus/library/"],
+      "expected_cmd": "cd /Users/ali/agu_campus/library",
+      "hint": "Start with `/Users/ali/...` all the way to `library`.",
+      "explanation": "A full absolute path starts at the very top of the tree (`/`) and lists every folder on the way: `cd /Users/ali/agu_campus/library`."
+    },
+    {
+      "id": "Q10",
+      "category": "REL_VS_ABS",
+      "title": "Deep Neighbor Jump (Relative)",
+      "cwd": "/Users/ali/agu_campus/cafeteria/kitchen",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus/library/basement",
+      "tree": {
+        "/Users/ali": ["agu_campus"],
+        "/Users/ali/agu_campus": ["cafeteria", "library"],
+        "/Users/ali/agu_campus/cafeteria": ["kitchen"],
+        "/Users/ali/agu_campus/cafeteria/kitchen": ["fridge.txt"],
+        "/Users/ali/agu_campus/library": ["basement", "reading_room"],
+        "/Users/ali/agu_campus/library/basement": ["secret_box.txt"],
+        "/Users/ali/agu_campus/library/reading_room": ["desks.txt"]
+      },
+      "task": "You are in `kitchen` (`/Users/ali/agu_campus/cafeteria/kitchen`). Move into `basement` (`/Users/ali/agu_campus/library/basement`) using a **relative path** (`..`).",
+      "constraint": "relative",
+      "cmd_type": "cd",
+      "accepted_cmds": ["cd ../../library/basement", "cd ../../library/basement/"],
+      "expected_cmd": "cd ../../library/basement",
+      "hint": "Count how many steps UP you need to reach `agu_campus` (1: `cafeteria`, 2: `agu_campus`), then walk down into `library/basement`.",
+      "explanation": "From `kitchen`, `..` goes to `cafeteria`, `../..` goes to `agu_campus`, and `/library/basement` walks down to the target: `cd ../../library/basement`."
+    },
+    {
+      "id": "Q11",
+      "category": "REL_VS_ABS",
+      "title": "Sibling Room Inside the Same Floor",
+      "cwd": "/Users/ali/agu_campus/labs/floor_1/chemistry",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus/labs/floor_1/physics",
+      "tree": {
+        "/Users/ali": ["agu_campus"],
+        "/Users/ali/agu_campus": ["labs"],
+        "/Users/ali/agu_campus/labs": ["floor_1", "floor_2"],
+        "/Users/ali/agu_campus/labs/floor_1": ["chemistry", "physics"],
+        "/Users/ali/agu_campus/labs/floor_1/chemistry": ["beakers.txt"],
+        "/Users/ali/agu_campus/labs/floor_1/physics": ["lasers.txt"],
+        "/Users/ali/agu_campus/labs/floor_2": ["genetics"]
+      },
+      "task": "You are in `chemistry`. Both `chemistry` and `physics` share the same parent (`floor_1`). Move into `physics` using the shortest **relative path**.",
+      "constraint": "relative",
+      "cmd_type": "cd",
+      "accepted_cmds": ["cd ../physics", "cd ../physics/"],
+      "expected_cmd": "cd ../physics",
+      "hint": "You only need to go up ONE level (to `floor_1`) before entering `physics`!",
+      "explanation": "Because `chemistry` and `physics` are both inside `floor_1`, you only step up one level (`..` -> `floor_1`) and enter `physics`: `cd ../physics`."
+    },
+    {
+      "id": "Q12",
+      "category": "REL_VS_ABS",
+      "title": "Cross-Floor Lab Move",
+      "cwd": "/Users/ali/agu_campus/labs/floor_1/chemistry",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus/labs/floor_2/genetics",
+      "tree": {
+        "/Users/ali": ["agu_campus"],
+        "/Users/ali/agu_campus": ["labs"],
+        "/Users/ali/agu_campus/labs": ["floor_1", "floor_2"],
+        "/Users/ali/agu_campus/labs/floor_1": ["chemistry"],
+        "/Users/ali/agu_campus/labs/floor_1/chemistry": ["beakers.txt"],
+        "/Users/ali/agu_campus/labs/floor_2": ["genetics"],
+        "/Users/ali/agu_campus/labs/floor_2/genetics": ["dna.txt"]
+      },
+      "task": "You are in `chemistry` (on `floor_1`). Move to `genetics` (on `floor_2`) using a **relative path** (`..`).",
+      "constraint": "relative",
+      "cmd_type": "cd",
+      "accepted_cmds": ["cd ../../floor_2/genetics", "cd ../../floor_2/genetics/"],
+      "expected_cmd": "cd ../../floor_2/genetics",
+      "hint": "Up 1 (`..`) is `floor_1`. Up 2 (`../..`) is `labs`. From `labs`, walk down into `floor_2/genetics`.",
+      "explanation": "`../..` takes you from `chemistry` -> `floor_1` -> `labs`. Then `floor_2/genetics` takes you into `genetics`: `cd ../../floor_2/genetics`."
+    },
+    {
+      "id": "Q13",
+      "category": "REACH_VS_WALK",
+      "title": "Peek Inside a Sub-Folder Without Entering It",
+      "cwd": "/Users/ali/project",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/notes",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["notes", "data", "backup"],
+        "/Users/ali/project/notes": ["todo.txt", "diary.txt"],
+        "/Users/ali/project/data": ["cities.txt"],
+        "/Users/ali/project/backup": []
+      },
+      "task": "You are standing in `project`. **Without moving (`do not use cd`)**, list what is inside the `notes` folder.",
+      "constraint": "no_cd",
+      "cmd_type": "arg_path",
+      "cmd_name": "ls",
+      "target_path": "/Users/ali/project/notes",
+      "accepted_cmds": ["ls notes", "ls notes/", "ls ./notes", "ls ~/project/notes", "ls /Users/ali/project/notes"],
+      "expected_cmd": "ls notes",
+      "hint": "Give `notes` as the argument to `ls`.",
+      "explanation": "`ls notes` reaches into the `notes` folder and lists `todo.txt` and `diary.txt` while your feet stay in `project`."
+    },
+    {
+      "id": "Q14",
+      "category": "REACH_VS_WALK",
+      "title": "Read a File in a Child Folder",
+      "cwd": "/Users/ali/project",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/notes/diary.txt",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["notes", "data"],
+        "/Users/ali/project/notes": ["todo.txt", "diary.txt"],
+        "/Users/ali/project/data": ["cities.txt"]
+      },
+      "task": "You are standing in `project`. **Without leaving `project`**, print the entire content of `diary.txt` (which is inside `notes`) using `cat` and a **relative path**.",
+      "constraint": "relative",
+      "cmd_type": "arg_path",
+      "cmd_name": "cat",
+      "target_path": "/Users/ali/project/notes/diary.txt",
+      "accepted_cmds": ["cat notes/diary.txt", "cat ./notes/diary.txt"],
+      "expected_cmd": "cat notes/diary.txt",
+      "hint": "From `project`, the path to the file is `notes/diary.txt`.",
+      "explanation": "`cat notes/diary.txt` reads `diary.txt` inside `notes` without changing your current directory."
+    },
+    {
+      "id": "Q15",
+      "category": "REACH_VS_WALK",
+      "title": "Wait — Now You ARE Inside notes!",
+      "cwd": "/Users/ali/project/notes",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/notes/diary.txt",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["notes", "data"],
+        "/Users/ali/project/notes": ["todo.txt", "diary.txt"],
+        "/Users/ali/project/data": ["cities.txt"]
+      },
+      "task": "Look carefully at `📍 YOU ARE HERE`: you are now standing **inside `notes`**! Print `diary.txt` with `cat` using a relative path.",
+      "constraint": "relative",
+      "cmd_type": "arg_path",
+      "cmd_name": "cat",
+      "target_path": "/Users/ali/project/notes/diary.txt",
+      "accepted_cmds": ["cat diary.txt", "cat ./diary.txt"],
+      "expected_cmd": "cat diary.txt",
+      "hint": "You are ALREADY inside `notes`! Do NOT write `notes/diary.txt` or it will look for `notes/notes/diary.txt`!",
+      "explanation": "Because your current directory is already `/Users/ali/project/notes`, `diary.txt` is right at your feet: `cat diary.txt`."
+    },
+    {
+      "id": "Q16",
+      "category": "REACH_VS_WALK",
+      "title": "Read a File in a Neighbor Folder",
+      "cwd": "/Users/ali/project/notes",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/data/cities.txt",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["notes", "data"],
+        "/Users/ali/project/notes": ["diary.txt"],
+        "/Users/ali/project/data": ["cities.txt"]
+      },
+      "task": "You are standing in `notes`. **Without leaving `notes`**, print `cities.txt` (inside the neighbor folder `data`) using `cat` and a **relative path** (`..`).",
+      "constraint": "relative",
+      "cmd_type": "arg_path",
+      "cmd_name": "cat",
+      "target_path": "/Users/ali/project/data/cities.txt",
+      "accepted_cmds": ["cat ../data/cities.txt"],
+      "expected_cmd": "cat ../data/cities.txt",
+      "hint": "From `notes`, go up one level (`..` -> `project`), then into `data`, then `cities.txt`.",
+      "explanation": "`cat ../data/cities.txt` reaches up to `project` (`..`), into `data`, and reads `cities.txt` — all while you stay inside `notes`!"
+    },
+    {
+      "id": "Q17",
+      "category": "REACH_VS_WALK",
+      "title": "Create an Empty File in Another Room",
+      "cwd": "/Users/ali/project",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/notes",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["notes", "data"],
+        "/Users/ali/project/notes": ["diary.txt"],
+        "/Users/ali/project/data": ["cities.txt"]
+      },
+      "task": "You are standing in `project`. Create a new empty file called `ideas.txt` **inside the `notes` folder** without leaving `project`.",
+      "constraint": "relative",
+      "cmd_type": "arg_path",
+      "cmd_name": "touch",
+      "target_path": "/Users/ali/project/notes/ideas.txt",
+      "accepted_cmds": ["touch notes/ideas.txt", "touch ./notes/ideas.txt"],
+      "expected_cmd": "touch notes/ideas.txt",
+      "hint": "Use `touch` followed by the relative path `notes/ideas.txt`.",
+      "explanation": "`touch notes/ideas.txt` creates `ideas.txt` inside `notes` without needing to `cd` into `notes` first."
+    },
+    {
+      "id": "Q18",
+      "category": "REACH_VS_WALK",
+      "title": "Copy a File Into Your Current Room (.)",
+      "cwd": "/Users/ali/project/backup",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/data/cities.txt",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["notes", "data", "backup"],
+        "/Users/ali/project/notes": ["diary.txt"],
+        "/Users/ali/project/data": ["cities.txt"],
+        "/Users/ali/project/backup": []
+      },
+      "task": "You are standing inside `backup`. Copy `cities.txt` from the neighbor folder `data` **into your current folder (`backup`)** using `.` as the destination and a relative source path.",
+      "constraint": "relative",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "cp ../data/cities.txt .",
+        "cp ../data/cities.txt ./",
+        "cp ../data/cities.txt cities.txt"
+      ],
+      "expected_cmd": "cp ../data/cities.txt .",
+      "hint": "Pattern: `cp SOURCE DESTINATION`. From `backup`, the source is `../data/cities.txt` and 'here' is `.`!",
+      "explanation": "`cp ../data/cities.txt .` grabs `cities.txt` from `../data/` and copies it into `.` (the folder you are currently standing in)."
+    },
+    {
+      "id": "Q19",
+      "category": "OPTIONS_AND_FIND",
+      "title": "Spot the Hidden File in a Neighbor Folder",
+      "cwd": "/Users/ali/agu_campus/cafeteria",
+      "home": "/Users/ali",
+      "target": "/Users/ali/agu_campus/library",
+      "tree": {
+        "/Users/ali": ["agu_campus"],
+        "/Users/ali/agu_campus": ["cafeteria", "library"],
+        "/Users/ali/agu_campus/cafeteria": ["menu.txt"],
+        "/Users/ali/agu_campus/library": [".secret_password", "books.txt"]
+      },
+      "task": "You are in `cafeteria`. Without moving, list **all** files (including hidden dot-files) inside `library` using `ls` with the **all** option and a relative path.",
+      "constraint": "relative",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "ls -a ../library",
+        "ls -a ../library/",
+        "ls -la ../library",
+        "ls -lah ../library"
+      ],
+      "expected_cmd": "ls -a ../library",
+      "hint": "Remember the order: `command  -option  path`. The option for hidden files is `-a`, and the path from `cafeteria` is `../library`.",
+      "explanation": "Options go between the command and the path: `ls -a ../library` reveals `.secret_password` inside `library`."
+    },
+    {
+      "id": "Q20",
+      "category": "OPTIONS_AND_FIND",
+      "title": "Build Nested Folders in One Go",
+      "cwd": "/Users/ali/project",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["data"]
+      },
+      "task": "You are in `project`. Neither `results` nor `2026` exists yet. Create the nested folder path `results/2026/november` with a single `mkdir` command.",
+      "constraint": "any",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "mkdir -p results/2026/november",
+        "mkdir -p results/2026/november/",
+        "mkdir -pv results/2026/november"
+      ],
+      "expected_cmd": "mkdir -p results/2026/november",
+      "hint": "Which option tells `mkdir` to create missing parent folders on the way?",
+      "explanation": "`mkdir -p results/2026/november` creates `results`, then `2026` inside it, then `november` inside that."
+    },
+    {
+      "id": "Q21",
+      "category": "OPTIONS_AND_FIND",
+      "title": "Copy a Whole Folder Recursively",
+      "cwd": "/Users/ali/project",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/notes",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["notes", "backup"],
+        "/Users/ali/project/notes": ["day1.txt", "day2.txt"],
+        "/Users/ali/project/backup": []
+      },
+      "task": "You are in `project`. Copy the entire folder `notes` (and everything inside it) into the `backup/` folder.",
+      "constraint": "relative",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "cp -r notes backup",
+        "cp -r notes backup/",
+        "cp -r notes/ backup/",
+        "cp -rv notes backup",
+        "cp -rv notes backup/"
+      ],
+      "expected_cmd": "cp -r notes backup/",
+      "hint": "Copying a folder requires the recursive option `-r`: `cp -r SOURCE DESTINATION`.",
+      "explanation": "Without `-r`, `cp` refuses to copy a directory. `cp -r notes backup/` copies the `notes` folder and all its files into `backup/`."
+    },
+    {
+      "id": "Q22",
+      "category": "OPTIONS_AND_FIND",
+      "title": "Count Lines of a File in Another Folder",
+      "cwd": "/Users/ali/project/notes",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/data/students.txt",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["notes", "data"],
+        "/Users/ali/project/notes": ["todo.txt"],
+        "/Users/ali/project/data": ["students.txt"]
+      },
+      "task": "You are standing in `notes`. Using `wc` with the **lines-only** option and a relative path, count how many lines are in `students.txt` (inside `data`).",
+      "constraint": "relative",
+      "cmd_type": "exact",
+      "accepted_cmds": ["wc -l ../data/students.txt"],
+      "expected_cmd": "wc -l ../data/students.txt",
+      "hint": "Option `-l` counts lines, and from `notes` the path to `students.txt` is `../data/students.txt`.",
+      "explanation": "`wc -l ../data/students.txt` prints only the line count of `students.txt` while you stay inside `notes`."
+    },
+    {
+      "id": "Q23",
+      "category": "OPTIONS_AND_FIND",
+      "title": "Show Top 5 Lines of a File via Home (~)",
+      "cwd": "/Users/ali/agu_campus/cafeteria",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/data/story.txt",
+      "tree": {
+        "/Users/ali": ["agu_campus", "project"],
+        "/Users/ali/agu_campus": ["cafeteria"],
+        "/Users/ali/agu_campus/cafeteria": ["menu.txt"],
+        "/Users/ali/project": ["data"],
+        "/Users/ali/project/data": ["story.txt"]
+      },
+      "task": "You are in `cafeteria`. Print only the **first 5 lines** of `story.txt` using `head` and an **absolute path starting with `~`**.",
+      "constraint": "tilde",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "head -n 5 ~/project/data/story.txt",
+        "head -5 ~/project/data/story.txt"
+      ],
+      "expected_cmd": "head -n 5 ~/project/data/story.txt",
+      "hint": "Use `head -n 5` followed by `~/project/data/story.txt`.",
+      "explanation": "`head -n 5 ~/project/data/story.txt` uses `-n 5` to take the first 5 lines and `~` to start from `/Users/ali`."
+    },
+    {
+      "id": "Q24",
+      "category": "GREP_PIPES_REDIR",
+      "title": "grep: Word First, Path Second!",
+      "cwd": "/Users/ali/project/notes",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/data/messages.txt",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["notes", "data"],
+        "/Users/ali/project/notes": ["todo.txt"],
+        "/Users/ali/project/data": ["messages.txt"]
+      },
+      "task": "You are standing in `notes`. Search for the word `exam` (ignoring case with `-i`) inside `messages.txt` (in `data`) using a relative path.",
+      "constraint": "relative",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "grep -i \"exam\" ../data/messages.txt",
+        "grep -i exam ../data/messages.txt",
+        "grep -i 'exam' ../data/messages.txt"
+      ],
+      "expected_cmd": "grep -i \"exam\" ../data/messages.txt",
+      "hint": "Remember the strict `grep` order: `grep  -option  \"word\"  path`!",
+      "explanation": "`grep -i \"exam\" ../data/messages.txt` puts the option `-i` first, the search word `\"exam\"` second, and the relative file path `../data/messages.txt` third."
+    },
+    {
+      "id": "Q25",
+      "category": "GREP_PIPES_REDIR",
+      "title": "grep Whole Word Only (-w)",
+      "cwd": "/Users/ali/project/data",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/data/messages.txt",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["data"],
+        "/Users/ali/project/data": ["messages.txt"]
+      },
+      "task": "You are inside `data`. Search `messages.txt` for the **whole word** `lab` (so words like `available` and `syllabus` are NOT matched).",
+      "constraint": "relative",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "grep -w \"lab\" messages.txt",
+        "grep -w lab messages.txt",
+        "grep -w 'lab' messages.txt"
+      ],
+      "expected_cmd": "grep -w \"lab\" messages.txt",
+      "hint": "Use the `-w` option with `grep`. Because you are already in `data`, the file name is just `messages.txt`.",
+      "explanation": "`grep -w \"lab\" messages.txt` matches only the standalone word `lab` and ignores `lab` hidden inside longer words."
+    },
+    {
+      "id": "Q26",
+      "category": "GREP_PIPES_REDIR",
+      "title": "grep Start of Line (^)",
+      "cwd": "/Users/ali/project/data",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/data/messages.txt",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["data"],
+        "/Users/ali/project/data": ["messages.txt"]
+      },
+      "task": "You are inside `data`. Find all lines in `messages.txt` that **start** with `URGENT` (put the pattern in double quotes).",
+      "constraint": "relative",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "grep \"^URGENT\" messages.txt",
+        "grep '^URGENT' messages.txt",
+        "grep ^URGENT messages.txt"
+      ],
+      "expected_cmd": "grep \"^URGENT\" messages.txt",
+      "hint": "The caret symbol `^` at the start of the quotes (`\"^URGENT\"`) means 'at the very beginning of the line'.",
+      "explanation": "`grep \"^URGENT\" messages.txt` matches only lines where `URGENT` is at the very beginning of the line."
+    },
+    {
+      "id": "Q27",
+      "category": "GREP_PIPES_REDIR",
+      "title": "Save Output to Another Folder (>)",
+      "cwd": "/Users/ali/project/data",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/results",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["data", "results"],
+        "/Users/ali/project/data": ["students.txt"],
+        "/Users/ali/project/results": []
+      },
+      "task": "You are inside `data`. Sort `students.txt` removing duplicates (`sort -u`) and redirect (`>`) the output into a new file called `clean.txt` inside the neighbor folder `results`.",
+      "constraint": "relative",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "sort -u students.txt > ../results/clean.txt"
+      ],
+      "expected_cmd": "sort -u students.txt > ../results/clean.txt",
+      "hint": "Since you are in `data`, `students.txt` is right here, and the `results` folder is at `../results/clean.txt`.",
+      "explanation": "`sort -u students.txt > ../results/clean.txt` reads `students.txt` in the current folder and saves the sorted unique lines into `../results/clean.txt`."
+    },
+    {
+      "id": "Q28",
+      "category": "GREP_PIPES_REDIR",
+      "title": "Build a Two-Step Pipe (|)",
+      "cwd": "/Users/ali/project/data",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/data/students.txt",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["data"],
+        "/Users/ali/project/data": ["students.txt"]
+      },
+      "task": "You are inside `data`. Sort `students.txt` numerically in reverse by column 3 (`sort -nr -k 3 students.txt`) and **pipe (`|`)** the output into `head` to show only the **top 3** lines.",
+      "constraint": "any",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "sort -nr -k 3 students.txt | head -n 3",
+        "sort -nr -k 3 students.txt | head -3",
+        "sort -n -r -k 3 students.txt | head -n 3"
+      ],
+      "expected_cmd": "sort -nr -k 3 students.txt | head -n 3",
+      "hint": "Connect `sort -nr -k 3 students.txt` and `head -n 3` with `|`.",
+      "explanation": "The pipe `|` sends the sorted lines from `sort` directly into `head -n 3`, printing the top 3 highest-scoring students."
+    },
+    {
+      "id": "Q29",
+      "category": "GREP_PIPES_REDIR",
+      "title": "Search Across All .log Files with a Wildcard (*)",
+      "cwd": "/Users/ali/project",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/logs",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["logs", "notes"],
+        "/Users/ali/project/logs": ["day1.log", "day2.log", "day3.log", "README.txt"],
+        "/Users/ali/project/notes": ["todo.txt"]
+      },
+      "task": "You are standing in `project`. Use `grep -i` and the `*` wildcard to search for `\"error\"` across **all `.log` files inside `logs/`** in one command.",
+      "constraint": "relative",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "grep -i \"error\" logs/*.log",
+        "grep -i error logs/*.log",
+        "grep -i 'error' logs/*.log"
+      ],
+      "expected_cmd": "grep -i \"error\" logs/*.log",
+      "hint": "Pattern: `grep -i \"error\" logs/*.log`. That checks every `.log` file inside `logs/` and skips `README.txt`!",
+      "explanation": "`logs/*.log` expands to `logs/day1.log logs/day2.log logs/day3.log`, so `grep -i` searches all three log files at once."
+    },
+    {
+      "id": "Q30",
+      "category": "GREP_PIPES_REDIR",
+      "title": "Single-Character Wildcard (?)",
+      "cwd": "/Users/ali/project/logs",
+      "home": "/Users/ali",
+      "target": "/Users/ali/project/logs",
+      "tree": {
+        "/Users/ali": ["project"],
+        "/Users/ali/project": ["logs"],
+        "/Users/ali/project/logs": ["day1.log", "day2.log", "day3.log", "day10.log"]
+      },
+      "task": "You are inside `logs`. List ONLY the single-digit log files (`day1.log`, `day2.log`, `day3.log` — excluding `day10.log`) using `ls` and the `?` wildcard.",
+      "constraint": "relative",
+      "cmd_type": "exact",
+      "accepted_cmds": [
+        "ls day?.log",
+        "ls ./day?.log"
+      ],
+      "expected_cmd": "ls day?.log",
+      "hint": "`?` matches exactly ONE character: `day?.log`.",
+      "explanation": "`ls day?.log` matches `day1.log`, `day2.log`, and `day3.log`, while skipping `day10.log` because `10` has two characters."
+    }
+  ]
+}
+
